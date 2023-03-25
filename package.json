@@ -1,0 +1,23 @@
+{
+  "name": "secure-web-blog",
+  "version": "1.0.0",
+  "description": "Secure Web Blog for DSS coursework",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paul3bin/secure-web-blog.git"
+  },
+  "author": "Ebin, Bhasker, Kiran, and Satwick",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/paul3bin/secure-web-blog/issues"
+  },
+  "homepage": "https://github.com/paul3bin/secure-web-blog#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mocha": "^10.2.0"
+  }
+}
