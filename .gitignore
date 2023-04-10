@@ -137,3 +137,5 @@ dist
 
 # SvelteKit build / generate output
 .svelte-kit
+
+docker-compose.yml
