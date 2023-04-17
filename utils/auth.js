@@ -4,6 +4,8 @@ const util = require("util");
 const randomBytes = util.promisify(crypto.randomBytes);
 const env = process.env;
 var jwt = require("jsonwebtoken");
+const redis = require("redis");
+const redisClient = redis.createClient();
 
 async function hashPassword(password) {
   try {
@@ -26,18 +28,6 @@ async function comparePassword(password, hashedPassword) {
   }
 }
 
-function authCheck(req, res, next) {
-  /* if (!req.session.isLoggedIn || !req.session.user.user_id) {
-    next(
-      createError(401, "You are not authorized", {
-        refererUri: new URL(req.headers.referer).pathname,
-      })
-    );
-    return;
-  }
-  next();*/
-}
-
 // Encrypt data
 async function encryptData(text) {
   //let iv = crypto.randomBytes(16);
@@ -53,7 +43,7 @@ async function encryptData(text) {
 
   encrypted = Buffer.concat([encrypted, cipher.final()]);
 
-  return iv.toString("hex") + ":" + encrypted.toString("hex");
+  return process.env.DSS_IV + ":" + encrypted.toString("hex");
 }
 
 // Decrypt data
@@ -63,20 +53,82 @@ async function decryptData(text) {
   let encryptedText = Buffer.from(textParts.join(":"), "hex");
   let decipher = crypto.createDecipheriv(
     "aes-256-cbc",
-    Buffer.from(process.env.DSS_SECRET_KEY),
+    Buffer.from(process.env.DSS_SECRET_KEY, "hex"),
     iv
   );
   let decrypted = decipher.update(encryptedText);
-
+  //console.log("decrypt data", decrypted);
   decrypted = Buffer.concat([decrypted, decipher.final()]);
 
   return decrypted.toString();
 }
 
+function allow() {
+  return (req, res, next) => {
+    const token = req.headers["authorization"];
+    if (!token) {
+      req.user = null;
+    } else {
+      jwt.verify(token, process.env.DSS_SECRET_KEY, function (err, decoded) {
+        if (err) {
+          req.user = null;
+        }
+
+        redisClient.connect();
+        const data = redisClient.get(token);
+        if (data == null) {
+          //console.log("data", null);
+          req.user = null;
+        } else {
+          req.user = decoded;
+          //console.log("user", req.user);
+        }
+        redisClient.disconnect();
+      });
+    }
+
+    next();
+  };
+}
+
+function authorize() {
+  return (req, res, next) => {
+    const token = req.headers["authorization"];
+    if (!token) {
+      return res.status(401).send("Access Denied");
+    } else {
+      jwt.verify(
+        token,
+        process.env.DSS_SECRET_KEY,
+        async function (err, decoded) {
+          if (err) {
+            return res.status(401).send("Access Denied " + err);
+          }
+          if (
+            decoded.ipAddress != req.ip.replace("::1", "localhost") ||
+            decoded.userAgent != req.headers["user-agent"]
+          ) {
+            return res.status(401).send("Invalid session");
+          } else {
+            await redisClient.connect();
+            const data = await redisClient.get(token);
+            await redisClient.disconnect();
+            if (data == null) {
+              return res.status(401).send("Invalid Session");
+            } else req.user = decoded;
+            next();
+          }
+        }
+      );
+    }
+  };
+}
+
 module.exports = {
-  authCheck,
   hashPassword,
   comparePassword,
   encryptData,
   decryptData,
+  authorize,
+  allow,
 };

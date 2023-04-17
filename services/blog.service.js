@@ -1,88 +1,135 @@
 const db = require("./db.service");
-//const helper = require("../utils/helper.util");
-//const config = require("../configs/general.config");
+const auth = require("../utils/auth");
+const { PreparedStatement: PS } = require("pg-promise");
+const jwt = require("jsonwebtoken");
+const redis = require("redis");
+const redisClient = redis.createClient();
 
 async function getById(id) {
-  /*  const offset = helper.getOffset(page, config.listPerPage);
-      const rows = await db.query(
-        `SELECT id, name, released_year, githut_rank, pypl_rank, tiobe_rank 
-    FROM programming_languages LIMIT ?,?`,
-        [offset, config.listPerPage]
-      );
-      const data = helper.emptyOrRows(rows);
-      const meta = { page };
-
-      return {
-        data,
-        meta,
-      };
-      */
+  const result = await db.callQuery(
+    `select 
+      blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private
+      from "DSS".tbl_blog_Data where blog_id=?`,
+    [id]
+  );
+  if (result && result.length > 0) {
+    return { success: "pass", message: "Blog updated succesfully." };
+  } else {
+    return { success: "fail", message: "Error updating blog." };
+  }
 }
 
-async function getAll() {}
-
-async function create(user) {
-  /*  const result = await db.query(
-        `INSERT INTO programming_languages 
-    (name, released_year, githut_rank, pypl_rank, tiobe_rank) 
-    VALUES 
-    (?, ?, ?, ?, ?)`,
-        [
-          programmingLanguage.name,
-          programmingLanguage.released_year,
-          programmingLanguage.githut_rank,
-          programmingLanguage.pypl_rank,
-          programmingLanguage.tiobe_rank,
-        ]
-      );
-
-      let message = "Error in creating programming language";
-
-      if (result.affectedRows) {
-        message = "Programming language created successfully";
-      }
-
-      return { message };*/
+async function getAll(user) {
+  //console.log("user get all", user);
+  var query = `select 
+      blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private
+      from "DSS".tbl_blog_Data where is_private = false`;
+  if (user != null) {
+    query =
+      query +
+      ` union select
+      blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private
+      from "DSS".tbl_blog_Data where is_private = true and posted_by = $1`;
+  }
+  const getBlog = new PS({
+    name: "get-blog",
+    text: query,
+    values: user != null ? [user._id] : [],
+  });
+  const result = await db.callQuery(getBlog);
+  if (result) {
+    return { success: "pass", result };
+  }
+  return { success: "fail", result };
 }
 
-async function update(id, user) {
-  /*  const result = await db.query(
-        `UPDATE programming_languages 
-    SET name=?, released_year=?, githut_rank=?, 
-    pypl_rank=?, tiobe_rank=? 
-    WHERE id=?`,
-        [
-          programmingLanguage.name,
-          programmingLanguage.released_year,
-          programmingLanguage.githut_rank,
-          programmingLanguage.pypl_rank,
-          programmingLanguage.tiobe_rank,
-          id,
-        ]
-      );
+async function create(blog) {
+  const insertBlog = new PS({
+    name: "insert-blog",
+    text: 'Insert into "DSS".tbl_blog_data(title, body, posted_by, posted_timestamp, is_private) Values($1,$2,$3,$4, $5) Returning blog_id',
+    values: [
+      blog.title,
+      blog.body,
+      blog.posted_by,
+      blog.posted_timestamp,
+      blog.is_private || false,
+    ],
+  });
 
-      let message = "Error in updating programming language";
+  const result = await db.callQuery(insertBlog);
+  //console.log(result);
+  if (result != null && result.length > 0) {
+    return { status: "pass", message: "Blog created succesfully." };
+  } else {
+    return { status: "fail", message: "Error saving blog." };
+  }
+}
 
-      if (result.affectedRows) {
-        message = "Programming language updated successfully";
-      }
+async function update(id, blog) {
+  const findBlog = new PS({
+    name: "find-blog",
+    text: 'select blog_id, posted_by, is_private from "DSS".tbl_blog_data where blog_id = $1',
+    values: [id],
+  });
+  const blogResult = await db.callQuery(findBlog);
+  //console.log(blogResult);
+  if (blogResult != null && blogResult.length > 0) {
+    if (blogResult[0].posted_by != blog.posted_by) {
+      return { status: "unauthorized", message: "Access denied" };
+    }
 
-      return { message };*/
+    const updateBlog = new PS({
+      name: "update-blog",
+      text: 'Update "DSS".tbl_blog_data set title = $1, body=$2, modified_by=$3, modified_timestamp=$4, is_private = $5 where blog_id=$6',
+      values: [
+        blog.title,
+        blog.body,
+        blog.posted_by,
+        "now()",
+        blog.is_private || false,
+        id,
+      ],
+    });
+    const updateResult = await db.callQuery(updateBlog);
+    console.log(updateResult);
+    if (updateResult) {
+      return { status: "pass", message: "Blog updated succesfully" };
+    } else {
+      return { status: "fail", message: "Error updating blog" };
+    }
+  } else {
+    return { status: "fail", message: "Blog not found" };
+  }
 }
 
 async function remove(id) {
-  /*const result = await db.query(
-        `DELETE FROM programming_languages WHERE id=?`,
-        [id]
-      );
+  const findBlog = new PS({
+    name: "find-blog",
+    text: 'select blog_id, posted_by, is_private from "DSS".tbl_blog_data where blog_id = $1',
+    values: [id],
+  });
+  const blogResult = await db.callQuery(findBlog);
+  //console.log(blogResult);
+  if (blogResult != null && blogResult.length > 0) {
+    if (blogResult[0].posted_by != blog.posted_by) {
+      return { status: "unauthorized", message: "Access denied" };
+    }
 
-      let message = "Error in deleting programming language";
+    const deleteBlog = new PS({
+      name: "delete-blog",
+      text: 'Delete from "DSS".tbl_blog_data where blog_id=$1',
+      values: [id],
+    });
+    const deleteResult = await db.callQuery(deleteBlog);
 
-      if (result.affectedRows) {
-        message = "Programming language deleted successfully";
-      }
-
-      return { message };*/
+    if (deleteResult) {
+      return { status: "pass", message: "Blog deleted succesfully" };
+    } else {
+      return { status: "fail", message: "Error deleting blog" };
+    }
+  } else {
+    return { status: "fail", message: "Blog not found" };
+  }
 }
 
 module.exports = {

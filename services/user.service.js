@@ -7,6 +7,7 @@ const redis = require("redis");
 const redisClient = redis.createClient();
 
 async function getById(id) {
+  // console.log("id", id);
   const findUserById = new PS({
     name: "find-user-by-id",
     text: 'select email, name, phone_number from "DSS".tbl_users_data where user_id = $1',
@@ -17,8 +18,11 @@ async function getById(id) {
 
   if (result != null && result.length > 0) {
     result[0].email = await auth.decryptData(result[0].email);
+    //  console.log("email", result[0].email);
     result[0].name = await auth.decryptData(result[0].name);
+    // console.log("name", result[0].name);
     result[0].phone_number = await auth.decryptData(result[0].phone_number);
+    // console.log("phone_number", result[0].phone_number);
     return result;
   } else {
     return null;
@@ -43,14 +47,16 @@ async function getAll() {
 
 async function authenticate(userParams, ipaddress, userAgent) {
   //console.log("userparams", userParams.email);
-  userParams["ipAddress"] = ipaddress;
+  userParams["ipAddress"] = ipaddress.replace("::1", "localhost");
   userParams["userAgent"] = userAgent;
   const findUser = new PS({
     name: "authenticate-user",
     text: 'select * from "DSS".tbl_users_data where email = $1',
     values: [userParams.email],
   });
+  //console.log("userparams", userParams);
   const user = await db.callOneorNone(findUser);
+  //console.log("user", user);
   return await validatePassword(user, userParams);
 }
 
@@ -61,7 +67,7 @@ async function validatePassword(user, userParams) {
       //  console.log("inside user account locked");
       return { status: "fail", message: "User Account Locked" };
     }
-    // console.log("inside user", user);
+    //console.log("inside user", userParams);
     const validPassword = await auth.comparePassword(
       userParams.password,
       user.password_hash
@@ -69,9 +75,9 @@ async function validatePassword(user, userParams) {
     if (validPassword) {
       const token = jwt.sign(
         {
-          _id: user._id,
-          /*ipaddress: userParams.ipaddress,
-          userAgent: userParams.userAgent,*/
+          _id: user.user_id,
+          ipAddress: userParams.ipAddress,
+          userAgent: userParams.userAgent,
           email: user.email,
         },
         process.env.DSS_SECRET_KEY,
@@ -79,7 +85,18 @@ async function validatePassword(user, userParams) {
       );
       const otp = await generateOTP(user);
       await redisClient.connect();
-      await redisClient.set(token, otp, 600);
+      await redisClient.set(
+        token,
+        JSON.stringify({
+          value: otp,
+          email: user.email,
+          ip: userParams.ipAddress,
+          userAgent: userParams.userAgent,
+        }),
+        {
+          EX: 720,
+        }
+      );
       await redisClient.disconnect();
       return { status: "pass", token, otp };
     }
@@ -103,27 +120,6 @@ async function validatePassword(user, userParams) {
   }
 }
 
-// async function UpdateSession(token, twofaCode, user, userParams) {
-//   const insertSession = new PS({
-//     name: "insert-session",
-//     text:
-//       'insert into "DSS".tbl_sessions_data(user_id, session_token, expiration_timestamp,ip_address, user_agent,  is_active, twofa_code, twofa_code_expiration)' +
-//       "values($1, $2, $3, $4, $5, $6, $7, $8)",
-//     values: [
-//       user.user_id,
-//       token,
-//       "now()",
-//       userParams.ipAddress,
-//       userParams.userAgent,
-//       false,
-//       twofaCode,
-//       "now()",
-//     ],
-//   });
-
-//   const result = await db.callQuery(insertSession);
-// }
-
 //GENERATE AND SEND OTP TO THE USER
 async function generateOTP(user) {
   if (user) {
@@ -139,13 +135,27 @@ async function generateOTP(user) {
 
 async function verify(token, code) {
   await redisClient.connect();
-  const value = await redisClient.get(token);
+  const otp = JSON.parse(await redisClient.get(token));
   await redisClient.disconnect();
-  //console.log(value);
-  if (value) {
-    if (value == code) {
+
+  if (otp) {
+    if (otp.value == code) {
       return { status: "success", message: "valid code" };
     } else {
+      //increment 2fa attempt count
+      const updateUserTwofaAttempts = new PS({
+        name: "update-user-twofa-attempts",
+        text: 'Update "DSS".tbl_users_data set twofa_attempt_count = twofa_attempt_count + 1, lock_account =  CASE WHEN login_attempt_count > 4 THEN true When twofa_attempt_count > 4 THEN true ELSE false END  where email = $1 Returning lock_account ',
+        values: [otp.email],
+      });
+      const result = await db.callOneorNone(updateUserTwofaAttempts);
+      //console.log(result);
+      if (result && result.lock_account) {
+        return {
+          status: "failure",
+          message: "Your Account is Locked. Please contact the adminstrator.",
+        };
+      }
       return { status: "failure", message: "invalid code" };
     }
   } else return { status: "failure", message: "invalid token" };

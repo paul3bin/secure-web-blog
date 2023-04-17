@@ -18,7 +18,6 @@ async function getById(req, res, next) {
       id: Joi.string().required(),
     });
     if (userSchema.validate(req.params).error) {
-      // console.log("invalid schema");
       res.send(userSchema.validate(req.body).error.message);
     } else {
       res.json(await userService.getById(req.params.id));
@@ -90,7 +89,6 @@ async function verify(req, res, next) {
 
 async function update(req, res, next) {
   try {
-    // res.json(await programmingLanguages.update(req.params.id, req.body));
   } catch (err) {
     console.error(`Error while updating user`, err.message);
     next(err);
