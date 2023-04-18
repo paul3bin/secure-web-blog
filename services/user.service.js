@@ -18,14 +18,11 @@ async function getById(id) {
 
   if (result != null && result.length > 0) {
     result[0].email = await auth.decryptData(result[0].email);
-    //  console.log("email", result[0].email);
     result[0].name = await auth.decryptData(result[0].name);
-    // console.log("name", result[0].name);
     result[0].phone_number = await auth.decryptData(result[0].phone_number);
-    // console.log("phone_number", result[0].phone_number);
-    return result;
+    return { status: "pass", data: result };
   } else {
-    return null;
+    return { status: "fail", data: null };
   }
   return result;
 }
@@ -92,6 +89,7 @@ async function validatePassword(user, userParams) {
           email: user.email,
           ip: userParams.ipAddress,
           userAgent: userParams.userAgent,
+          active: user.isActivated,
         }),
         {
           EX: 720,
@@ -116,7 +114,7 @@ async function validatePassword(user, userParams) {
   }
   //IF THE EMAIL IS NOT FOUND LOCK THE IP AFTER 5 ATTEMPTS.
   else {
-    return { status: "fail", message: "" };
+    return { status: "fail", message: "Invalid User" };
   }
 }
 
@@ -171,11 +169,11 @@ async function create(user) {
   ]);
 
   let success = "success";
-  if (result["usp_users_insert"] == "-1") success = "Email already exists";
-  else {
-    success = "User created succesfully.";
+  if (result["usp_users_insert"] == "-1") {
+    return { status: "fail", message: "Email already exists" };
+  } else {
+    return { status: "pass", message: "User created succesfully" };
   }
-  return { success };
 }
 
 async function update(id, user) {

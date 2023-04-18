@@ -64,29 +64,31 @@ async function decryptData(text) {
 }
 
 function allow() {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     const token = req.headers["authorization"];
     if (!token) {
       req.user = null;
     } else {
-      jwt.verify(token, process.env.DSS_SECRET_KEY, function (err, decoded) {
-        if (err) {
-          req.user = null;
+      await jwt.verify(
+        token,
+        process.env.DSS_SECRET_KEY,
+        async function (err, decoded) {
+          if (err) {
+            req.user = null;
+          }
+          await redisClient.connect();
+          const data = await redisClient.get(token);
+          await redisClient.disconnect();
+          if (data == null) {
+            //console.log("data", null);
+            req.user = null;
+          } else {
+            req.user = decoded;
+            //console.log("user", req.user);
+          }
         }
-
-        redisClient.connect();
-        const data = redisClient.get(token);
-        if (data == null) {
-          //console.log("data", null);
-          req.user = null;
-        } else {
-          req.user = decoded;
-          //console.log("user", req.user);
-        }
-        redisClient.disconnect();
-      });
+      );
     }
-
     next();
   };
 }
@@ -112,10 +114,15 @@ function authorize() {
           } else {
             await redisClient.connect();
             const data = await redisClient.get(token);
+            console.log(data);
             await redisClient.disconnect();
             if (data == null) {
               return res.status(401).send("Invalid Session");
-            } else req.user = decoded;
+            } else if (JSON.parse(data).active == false) {
+              return res.status(401).send("Invalid Session");
+            } else {
+              req.user = decoded;
+            }
             next();
           }
         }

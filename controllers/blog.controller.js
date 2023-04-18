@@ -1,6 +1,6 @@
 const blogService = require("../services/blog.service");
 const Joi = require("joi");
-const auth = require("../utils/auth");
+//const auth = require("../utils/auth");
 
 async function getById(req, res, next) {
   try {
@@ -33,6 +33,7 @@ async function create(req, res, next) {
     const blogSchema = Joi.object({
       title: Joi.string().required(),
       body: Joi.string().required(),
+      isPrivate: Joi.bool(),
     }).options({ abortEarly: false });
 
     if (blogSchema.validate(req.body).error) {
@@ -43,15 +44,16 @@ async function create(req, res, next) {
         body: req.body.body,
         posted_by: req.user._id,
         posted_timestamp: "now()",
+        is_private: req.body.isPrivate,
       };
       const result = await blogService.create(blog);
-      console.log(result);
+      // console.log(result);
       if (result.status == "pass")
         return res.status(200).send("Blog created succesfully");
       else if (result.status == "fail")
-        return res.status(404).send("Error creating the blog");
+        return res.status(406).send("Error creating the blog");
       else if (result.status == "unauthorized")
-        return res.status(401).send("Access Denied");
+        return res.status(404).send("Access Denied");
     }
   } catch (err) {
     console.error(`Error while creating blog`, err.message);

@@ -91,7 +91,7 @@ async function update(id, blog) {
       ],
     });
     const updateResult = await db.callQuery(updateBlog);
-    console.log(updateResult);
+    //console.log(updateResult);
     if (updateResult) {
       return { status: "pass", message: "Blog updated succesfully" };
     } else {

@@ -50,7 +50,14 @@ async function create(req, res, next) {
         phone_number: encrypedPhone,
         name: encryptedName,
       };
-      res.json(await userService.create(user));
+      const result = await userService.create(user);
+      if (result != null) {
+        if (result.status == "fail") {
+          res.status(406).send(result);
+        } else if (result.status == "pass") {
+          res.status(200).send(result);
+        }
+      }
     }
   } catch (err) {
     console.error(`Error while creating user`, err.message);
