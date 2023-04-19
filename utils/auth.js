@@ -114,7 +114,7 @@ function authorize() {
           } else {
             await redisClient.connect();
             const data = await redisClient.get(token);
-            console.log(data);
+            // console.log(data);
             await redisClient.disconnect();
             if (data == null) {
               return res.status(401).send("Invalid Session");
