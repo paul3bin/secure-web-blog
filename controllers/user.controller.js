@@ -39,7 +39,7 @@ async function create(req, res, next) {
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*~])[A-Za-z\d!@#$%^&*~]{8,}$/
         )
         .error((errors) => {
-          console.log("password-errors", errors);
+          // console.log("password-errors", errors);
           errors.forEach((err) => {
             err.message =
               '"Password" must contain atleast 8 characters, one uppercase, one lowercase, one digit and a special character @$!%*?&';
