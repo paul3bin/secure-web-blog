@@ -32,7 +32,20 @@ async function create(req, res, next) {
   try {
     const userSchema = Joi.object({
       email: Joi.string().email().required(),
-      password: Joi.string().min(8).required(),
+      password: Joi.string()
+        .required()
+        .min(8)
+        .regex(
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*~])[A-Za-z\d!@#$%^&*~]{8,}$/
+        )
+        .error((errors) => {
+          console.log("password-errors", errors);
+          errors.forEach((err) => {
+            err.message =
+              '"Password" must contain atleast 8 characters, one uppercase, one lowercase, one digit and a special character @$!%*?&';
+          });
+          return errors;
+        }),
       phone_number: Joi.string().allow(""),
       name: Joi.string().required(),
     }).options({ abortEarly: false });
@@ -86,11 +99,15 @@ async function signIn(req, res, next) {
 
 async function verify(req, res, next) {
   const token = req.headers["authorization"];
-  const result = await userService.verify(token, req.body.otp);
-  if (result.status == "fail") {
-    return res.status(401).json(result);
+  if (req.body != null && req.body.otp != null && req.body.otp.length > 0) {
+    const result = await userService.verify(token, req.body.otp);
+    if (result.status == "fail") {
+      return res.status(401).json(result);
+    } else {
+      return res.status(200).json(result);
+    }
   } else {
-    return res.status(200).json(result);
+    return res.status(406).json({ status: "failure", message: "invalid code" });
   }
 }
 

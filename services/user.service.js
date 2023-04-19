@@ -89,7 +89,7 @@ async function validatePassword(user, userParams) {
           email: user.email,
           ip: userParams.ipAddress,
           userAgent: userParams.userAgent,
-          active: user.isActivated,
+          active: user.is_Activated,
         }),
         {
           EX: 720,
@@ -138,7 +138,13 @@ async function verify(token, code) {
 
   if (otp) {
     if (otp.value == code) {
-      return { status: "success", message: "valid code" };
+      const activateUser = new PS({
+        name: "activate-user",
+        text: 'Update "DSS".tbl_users_data set is_activated = true where email = $1',
+        values: [otp.email],
+      });
+      const result = await db.callOneorNone(activateUser);
+      return { status: "pass", message: "User activated" };
     } else {
       //increment 2fa attempt count
       const updateUserTwofaAttempts = new PS({
