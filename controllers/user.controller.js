@@ -107,7 +107,7 @@ async function verify(req, res, next) {
       return res.status(200).json(result);
     }
   } else {
-    return res.status(406).json({ status: "failure", message: "invalid code" });
+    return res.status(406).json({ status: "fail", message: "invalid code" });
   }
 }
 

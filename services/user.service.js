@@ -62,7 +62,10 @@ async function validatePassword(user, userParams) {
   if (user) {
     if (user.lock_account) {
       //  console.log("inside user account locked");
-      return { status: "fail", message: "User Account Locked" };
+      return {
+        status: "fail",
+        message: "Your account is locked. Please contact the administrator",
+      };
     }
     //console.log("inside user", userParams);
     const validPassword = await auth.comparePassword(
@@ -107,7 +110,7 @@ async function validatePassword(user, userParams) {
         values: [userParams.email],
       });
       db.callOneorNone(updateUserLoginAttempts);
-      if (user.login_attempt_count >= 4)
+      if (user.login_attempt_count > 4)
         return {
           status: "fail",
           message: "Your Account is Locked. Please contact the administrator",
@@ -163,9 +166,9 @@ async function verify(token, code) {
           message: "Your Account is Locked. Please contact the adminstrator.",
         };
       }
-      return { status: "failure", message: "invalid code" };
+      return { status: "fail", message: "invalid code" };
     }
-  } else return { status: "failure", message: "invalid token" };
+  } else return { status: "fail", message: "invalid token" };
 }
 
 async function create(user) {

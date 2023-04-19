@@ -11,7 +11,16 @@ async function getById(req, res, next) {
     if (blogSchema.validate(req.params).error) {
       res.send(blogSchema.validate(req.body).error.message);
     } else {
-      res.json(await blogService.getById(req.params.id));
+      const result = await blogService.getById(req.params.id);
+      if (result.status == "pass") {
+        res.status(200).send(result);
+      } else if (result.status == "unauthorized") {
+        res
+          .status(401)
+          .send({ status: "unauthorized", message: "Access Denied" });
+      } else {
+        res.status(200).send(result);
+      }
     }
   } catch (err) {
     console.error(`Error while getting users by id`, err.message);

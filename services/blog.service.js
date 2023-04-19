@@ -5,17 +5,29 @@ const jwt = require("jsonwebtoken");
 const redis = require("redis");
 const redisClient = redis.createClient();
 
-async function getById(id) {
-  const result = await db.callQuery(
-    `select 
+async function getById(id, user) {
+  const getBlogById = new PS({
+    name: "get-blog-byId",
+    text: `select 
       blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private
-      from "DSS".tbl_blog_Data where blog_id=?`,
-    [id]
-  );
-  if (result && result.length > 0) {
-    return { success: "pass", message: "Blog updated succesfully." };
+      from "DSS".tbl_blog_Data where blog_id=$1`,
+    values: [id],
+  });
+
+  const result = await db.callQuery(getBlogById);
+
+  if (result != null && result.length > 0) {
+    if (result[0].is_private) {
+      if (user != null && result[0].posted_by == user._id) {
+        return { status: "pass", data: result[0] };
+      } else {
+        return { status: "unauthorized", message: "Access Denied" };
+      }
+    } else {
+      return { status: "pass", data: result[0] };
+    }
   } else {
-    return { success: "fail", message: "Error updating blog." };
+    return { status: "fail", data: result[0] };
   }
 }
 
@@ -38,9 +50,9 @@ async function getAll(user) {
   });
   const result = await db.callQuery(getBlog);
   if (result) {
-    return { success: "pass", result };
+    return { status: "pass", result };
   }
-  return { success: "fail", result };
+  return { status: "fail", result };
 }
 
 async function create(blog) {
