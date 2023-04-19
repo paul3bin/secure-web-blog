@@ -108,13 +108,16 @@ async function validatePassword(user, userParams) {
       });
       db.callOneorNone(updateUserLoginAttempts);
       if (user.login_attempt_count >= 4)
-        return { status: "fail", message: "Account Locked" };
+        return {
+          status: "fail",
+          message: "Your Account is Locked. Please contact the administrator",
+        };
       else return { status: "fail", message: "Invalid Credentials" };
     }
   }
   //IF THE EMAIL IS NOT FOUND LOCK THE IP AFTER 5 ATTEMPTS.
   else {
-    return { status: "fail", message: "Invalid User" };
+    return { status: "fail", message: "Invalid Credentials" };
   }
 }
 

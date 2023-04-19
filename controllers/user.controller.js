@@ -86,11 +86,11 @@ async function signIn(req, res, next) {
       req.headers["x-forwarded-for"] || req.ip,
       req.headers["user-agent"]
     );
-    if (result.status == "fail") {
-      return res.status(401).json(result);
-    } else {
-      return res.status(200).json(result);
-    }
+    //if (result.status == "fail") {
+    //   return res.status(401).json(result);
+    // } else {
+    if (result) return res.status(200).json(result);
+    //}
   } catch (err) {
     console.error(`Error while signing user`, err.message);
     next(err);
