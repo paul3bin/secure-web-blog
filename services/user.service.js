@@ -120,7 +120,7 @@ async function validatePassword(user, userParams) {
   }
   //IF THE EMAIL IS NOT FOUND LOCK THE IP AFTER 5 ATTEMPTS.
   else {
-    return { status: "fail", message: "Invalid OTP" };
+    return { status: "fail", message: "Invalid Credentials" };
   }
 }
 
@@ -228,6 +228,14 @@ async function update(id, user) {
       return { message };*/
 }
 
+async function signOut(token) {
+  // console.log("logging out");
+  await redisClient.connect();
+  await redisClient.del(token);
+  await redisClient.disconnect();
+  return { status: "pass", message: "You have been Logged Out" };
+}
+
 async function remove(id) {
   /*const result = await db.query(
         `DELETE FROM programming_languages WHERE id=?`,
@@ -251,4 +259,5 @@ module.exports = {
   getById,
   authenticate,
   verify,
+  signOut,
 };

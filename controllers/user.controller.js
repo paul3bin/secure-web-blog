@@ -139,6 +139,19 @@ async function remove(req, res, next) {
   }
 }
 
+async function signOut(req, res, next) {
+  try {
+    const token = req.headers["authorization"];
+    if (token) {
+      const result = await userService.signOut(token);
+      if (result.status == "pass") res.status(200).send(result);
+      else res.status(400).send(result);
+    } else {
+      res.status(400).send("Bad request");
+    }
+  } catch {}
+}
+
 module.exports = {
   get,
   getById,
@@ -147,4 +160,5 @@ module.exports = {
   remove,
   signIn,
   verify,
+  signOut,
 };
