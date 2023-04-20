@@ -92,7 +92,7 @@ async function validatePassword(user, userParams) {
           email: user.email,
           ip: userParams.ipAddress,
           userAgent: userParams.userAgent,
-          active: user.is_Activated,
+          active: false,
         }),
         {
           EX: 720,
