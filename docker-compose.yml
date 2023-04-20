@@ -1,0 +1,44 @@
+version: "3.8"
+services:
+  api:
+    restart: "unless-stopped"
+    command: npm start
+    container_name: dss_api
+    hostname: "dssapi.local"
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      - DSS_DB_HOST=mahmud.db.elephantsql.com
+      - DSS_DB_USER=wwtvmpnp
+      - DSS_DB_PASSWORD=YXOEKMod5J7J0TvV1oqn9Fowho20rZXh
+      - DSS_DB_NAME=wwtvmpnp
+      - DSS_DB_PORT=5432
+      - DSS_PORT=8085
+      - DSS_SECRET_KEY=b03eccbd67a55549070d3ea980d7f57258e5935241392de7b99438f1bbfd5379
+      - DSS_IV=3d1e5193c60c0bdd9991aa4b61af6ffb
+    ports:
+      - "8085:8085"
+    depends_on:
+      - redis
+
+  redis:
+    restart: "unless-stopped"
+    container_name: dss_redis
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+#   db:
+#     image: postgres:14.1-alpine
+#     restart: "no"
+#     container_name: secure_blog_db
+#     environment:
+#       - POSTGRES_USER=postgres
+#       - POSTGRES_PASSWORD=postgres
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - db:/var/lib/postgresql/data
+# volumes:
+#   db:
+#     driver: local
