@@ -9,14 +9,19 @@ async function getById(id, user) {
   const getBlogById = new PS({
     name: "get-blog-byId",
     text: `select 
-      blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private
-      from "DSS".tbl_blog_Data where blog_id=$1`,
+      blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private,
+       tbl_users_Data.name as author
+      from "DSS".tbl_blog_Data 
+      inner join "DSS".tbl_users_Data on tbl_blog_Data.posted_by = tbl_users_Data.user_id
+      where blog_id=$1`,
     values: [id],
   });
 
   const result = await db.callQuery(getBlogById);
 
   if (result != null && result.length > 0) {
+    //console.log(result[0]);
+    result[0].author = await auth.decryptData(result[0].author);
     if (result[0].is_private) {
       //console.log("inside private" + result[0], user);
       if (user != null && result[0].posted_by == user._id) {
@@ -28,21 +33,27 @@ async function getById(id, user) {
       return { status: "pass", data: result[0] };
     }
   } else {
-    return { status: "fail", data: result[0] };
+    return { status: "fail", message: "Not found" };
   }
 }
 
 async function getAll(user) {
   //console.log("user get all", user);
   var query = `select 
-      blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private
-      from "DSS".tbl_blog_Data where is_private = false`;
+      blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private,
+      tbl_users_Data.name as Author
+      from "DSS".tbl_blog_Data 
+      inner join "DSS".tbl_users_Data on tbl_blog_Data.posted_by = tbl_users_Data.user_id
+      where is_private = false`;
   if (user != null) {
     query =
       query +
       ` union select
-      blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private
-      from "DSS".tbl_blog_Data where is_private = true and posted_by = $1`;
+      blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private,
+      tbl_users_Data.name as Author
+      from "DSS".tbl_blog_Data 
+      inner join "DSS".tbl_users_Data on tbl_blog_Data.posted_by = tbl_users_Data.user_id
+      where is_private = true and posted_by = $1`;
   }
   const getBlog = new PS({
     name: "get-blog",
@@ -51,6 +62,11 @@ async function getAll(user) {
   });
   const result = await db.callQuery(getBlog);
   if (result) {
+    if (result.length > 0) {
+      for (i = 0; i < result.length; i++) {
+        result[i].author = await auth.decryptData(result[i].author);
+      }
+    }
     return { status: "pass", result };
   }
   return { status: "fail", result };
@@ -127,7 +143,6 @@ async function remove(id) {
     if (blogResult[0].posted_by != blog.posted_by) {
       return { status: "unauthorized", message: "Access denied" };
     }
-
     const deleteBlog = new PS({
       name: "delete-blog",
       text: 'Delete from "DSS".tbl_blog_data where blog_id=$1',

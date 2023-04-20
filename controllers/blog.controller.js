@@ -19,7 +19,7 @@ async function getById(req, res, next) {
           .status(401)
           .send({ status: "unauthorized", message: "Access Denied" });
       } else {
-        res.status(200).send(result);
+        res.status(404).send(result);
       }
     }
   } catch (err) {
