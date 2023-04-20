@@ -141,9 +141,10 @@ async function verify(token, code) {
   await redisClient.connect();
   const otp = JSON.parse(await redisClient.get(token));
   await redisClient.disconnect();
-
+  console.log(otp.value, code);
   if (otp) {
     if (otp.value == code) {
+      console.log("valid otp");
       // const unlockUser = new PS({
       //   name: "activate-user",
       //   text: 'Update "DSS".tbl_users_data set lock_account = false where email = $1',
