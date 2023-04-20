@@ -6,7 +6,7 @@ async function getById(req, res, next) {
   try {
     // console.log("request", req.params.id);
     const blogSchema = Joi.object({
-      id: Joi.string().required(),
+      id: Joi.number().integer().required(),
     });
     if (blogSchema.validate(req.params).error) {
       res.send(blogSchema.validate(req.body).error.message);
@@ -21,6 +21,24 @@ async function getById(req, res, next) {
       } else {
         res.status(404).send(result);
       }
+    }
+  } catch (err) {
+    console.error(`Error while getting users by id`, err.message);
+    next(err);
+  }
+}
+
+async function getByUser(req, res, next) {
+  try {
+    const result = await blogService.getByUser(req.user);
+    if (result.status == "pass") {
+      res.status(200).send(result);
+    } else if (result.status == "unauthorized") {
+      res
+        .status(401)
+        .send({ status: "unauthorized", message: "Access Denied" });
+    } else {
+      res.status(404).send(result);
     }
   } catch (err) {
     console.error(`Error while getting users by id`, err.message);
@@ -120,4 +138,5 @@ module.exports = {
   create,
   update,
   remove,
+  getByUser,
 };

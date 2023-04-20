@@ -37,6 +37,32 @@ async function getById(id, user) {
   }
 }
 
+async function getByUser(user) {
+  console.log("insie user", user._id);
+  var query = `select
+      blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private,
+      tbl_users_Data.name as Author
+      from "DSS".tbl_blog_Data 
+      inner join "DSS".tbl_users_Data on tbl_blog_Data.posted_by = tbl_users_Data.user_id
+      where posted_by = $1`;
+  const getBlog = new PS({
+    name: "get-user-blog",
+    text: query,
+    values: user != null ? [user._id] : [],
+  });
+  const result = await db.callQuery(getBlog);
+
+  if (result) {
+    if (result.length > 0) {
+      for (i = 0; i < result.length; i++) {
+        result[i].author = await auth.decryptData(result[i].author);
+      }
+    }
+    return { status: "pass", result };
+  }
+  return { status: "fail", result };
+}
+
 async function getAll(user) {
   //console.log("user get all", user);
   var query = `select 
@@ -166,4 +192,5 @@ module.exports = {
   update,
   remove,
   getById,
+  getByUser,
 };

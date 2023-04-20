@@ -19,7 +19,7 @@ app.set("trust proxy", true);
 
 /* Error handler middleware */
 app.use((err, req, res, next) => {
-  console.log("inside internal server error");
+  //console.log("Internal server error");
   const statusCode = err.statusCode || 500;
   console.error(err.message, err.stack);
   return res.status(statusCode).json({ message: "internal server error" });

@@ -21,7 +21,7 @@ async function callQuery(sql) {
   // const db = pgp(
   //   "postgres://wwtvmpnp:YXOEKMod5J7J0TvV1oqn9Fowho20rZXh@mahmud.db.elephantsql.com/wwtvmpnp"
   // );
-  //console.log("sql", sql);
+
   const result = await db.query(sql);
   //console.log(result);
   return result;
