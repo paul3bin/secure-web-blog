@@ -1,23 +1,27 @@
 {
-  "name": "secure-web-blog",
-  "version": "1.0.0",
-  "description": "Secure Web Blog for DSS coursework",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/paul3bin/secure-web-blog.git"
-  },
-  "author": "Ebin, Bhasker, Kiran, and Satwick",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/paul3bin/secure-web-blog/issues"
-  },
-  "homepage": "https://github.com/paul3bin/secure-web-blog#readme",
+  "name": "web-blog",
+  "version": "0.1.0",
+  "private": true,
+  "proxy": "http://localhost:8085",
   "dependencies": {
-    "express": "^4.18.2",
-    "mocha": "^10.2.0"
+    "axios": "^0.18.0",
+    "bootstrap": "^4.1.1",
+    "font-awesome": "^4.7.0",
+    "joi-browser": "^13.4.0",
+    "jwt-decode": "^2.2.0",
+    "lodash": "^4.17.10",
+    "prop-types": "^15.6.2",
+    "react": "^16.4.1",
+    "react-cookie": "^4.1.1",
+    "react-dom": "^16.4.1",
+    "react-router-dom": "^4.3.1",
+    "react-scripts": "1.1.4",
+    "react-toastify": "^4.1.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
   }
 }
