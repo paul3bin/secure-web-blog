@@ -18,6 +18,7 @@ async function getById(id, user) {
 
   if (result != null && result.length > 0) {
     if (result[0].is_private) {
+      //console.log("inside private" + result[0], user);
       if (user != null && result[0].posted_by == user._id) {
         return { status: "pass", data: result[0] };
       } else {
