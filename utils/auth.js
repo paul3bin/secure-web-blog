@@ -82,6 +82,8 @@ function allow() {
           if (data == null) {
             //console.log("data", null);
             req.user = null;
+          } else if (JSON.parse(data).active == false) {
+            req.user = null;
           } else {
             req.user = decoded;
             //console.log("user", req.user);
