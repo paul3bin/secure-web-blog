@@ -99,15 +99,22 @@ async function signIn(req, res, next) {
 
 async function verify(req, res, next) {
   const token = req.headers["authorization"];
-  if (req.body != null && req.body.otp != null && req.body.otp.length > 0) {
-    const result = await userService.verify(token, req.body.otp);
+  const userSchema = Joi.object({
+    otp: Joi.string()
+      .required()
+      .length(6)
+      .regex(/^[0-9]+$/),
+  });
+
+  if (userSchema.validate(req.body).error) {
+    return res.status(406).json(userSchema.validate(req.body).error.message);
+  } else {
+    const result = await userService.verify(token, req.user, req.body.otp);
     if (result.status == "fail") {
       return res.status(401).json(result);
     } else {
       return res.status(200).json(result);
     }
-  } else {
-    return res.status(406).json({ status: "fail", message: "invalid code" });
   }
 }
 

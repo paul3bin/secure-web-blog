@@ -115,12 +115,12 @@ async function validatePassword(user, userParams) {
           status: "fail",
           message: "Your Account is Locked. Please contact the administrator",
         };
-      else return { status: "fail", message: "Invalid Credentials" };
+      else return { status: "fail", message: "Invalid OTP" };
     }
   }
   //IF THE EMAIL IS NOT FOUND LOCK THE IP AFTER 5 ATTEMPTS.
   else {
-    return { status: "fail", message: "Invalid Credentials" };
+    return { status: "fail", message: "Invalid OTP" };
   }
 }
 
@@ -144,12 +144,26 @@ async function verify(token, code) {
 
   if (otp) {
     if (otp.value == code) {
-      const activateUser = new PS({
-        name: "activate-user",
-        text: 'Update "DSS".tbl_users_data set is_activated = true where email = $1',
-        values: [otp.email],
-      });
-      const result = await db.callOneorNone(activateUser);
+      // const unlockUser = new PS({
+      //   name: "activate-user",
+      //   text: 'Update "DSS".tbl_users_data set lock_account = false where email = $1',
+      //   values: [otp.email],
+      // });
+      // const result = await db.callOneorNone(UnlockAccount);
+      await redisClient.connect();
+      await redisClient.set(
+        token,
+        JSON.stringify({
+          email: otp.email,
+          ip: otp.ipAddress,
+          userAgent: otp.userAgent,
+          active: true,
+        }),
+        {
+          EX: 720,
+        }
+      );
+      await redisClient.disconnect();
       return { status: "pass", message: "User activated" };
     } else {
       //increment 2fa attempt count
