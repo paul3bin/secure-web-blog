@@ -1,6 +1,7 @@
 version: "3.8"
 services:
   api:
+    platform: linux/amd64
     restart: "unless-stopped"
     command: npm start
     container_name: dss_api
@@ -28,6 +29,7 @@ services:
     image: redis:alpine
     ports:
       - "6379:6379"
+
 #   db:
 #     image: postgres:14.1-alpine
 #     restart: "no"
