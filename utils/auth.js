@@ -106,7 +106,7 @@ function authorize() {
         process.env.DSS_SECRET_KEY,
         async function (err, decoded) {
           if (err) {
-            return res.status(401).send("Access Denied " + err);
+            return res.status(400).send("Bad Request ");
           }
           if (
             decoded.ipAddress != req.ip.replace("::1", "localhost") ||
