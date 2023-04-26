@@ -21,6 +21,7 @@ services:
       - "8085:8085"
     depends_on:
       - redis
+      # - db
 
   redis:
     restart: "unless-stopped"
@@ -31,7 +32,7 @@ services:
 #   db:
 #     image: postgres:14.1-alpine
 #     restart: "no"
-#     container_name: secure_blog_db
+#     container_name: dss_db
 #     environment:
 #       - POSTGRES_USER=postgres
 #       - POSTGRES_PASSWORD=postgres
