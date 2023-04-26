@@ -231,9 +231,15 @@ async function update(id, user) {
 async function signOut(token) {
   // console.log("logging out");
   await redisClient.connect();
-  await redisClient.del(token);
-  await redisClient.disconnect();
-  return { status: "pass", message: "You have been Logged Out" };
+  const found = JSON.parse(await redisClient.get(token));
+  if (found) {
+    await redisClient.del(token);
+    await redisClient.disconnect();
+    return { status: "pass", message: "You have been Logged Out" };
+  } else {
+    await redisClient.disconnect();
+    return { status: "fail", message: "Bad request" };
+  }
 }
 
 async function remove(id) {
