@@ -4,6 +4,8 @@ const app = express();
 const userRouter = require("./routes/user.router");
 const blogRouter = require("./routes/blog.router");
 
+const PORT = process.env.DSS_PORT || 8085;
+
 app.use(bodyParser.json());
 
 app.use(
@@ -38,6 +40,4 @@ app.use((req, res, next) => {
   next();
 });
 
-app.listen(process.env.DSS_PORT, () =>
-  console.log("Server running  on port ", process.env.DSS_PORT)
-);
+app.listen(8085, () => console.log("Server running  on port ", PORT));
