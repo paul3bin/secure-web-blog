@@ -2,9 +2,10 @@ const db = require("./db.service");
 const auth = require("../utils/auth");
 const { PreparedStatement: PS } = require("pg-promise");
 const jwt = require("jsonwebtoken");
-const email = require("./email.service");
+const emailService = require("./email.service");
 const redis = require("redis");
-const redisClient = redis.createClient();
+const { required } = require("joi");
+const redisClient = redis.createClient({ url: "redis://dss_redis" });
 
 async function getById(id) {
   // console.log("id", id);
@@ -128,11 +129,10 @@ async function validatePassword(user, userParams) {
 async function generateOTP(user) {
   if (user) {
     const otp = Math.floor(Math.random() * 899999 + 100000);
-    email.sendEmail(
-      user.email,
-      "Login verification code",
-      "Your DSS login verficiation code is " + otp
-    );
+    auth
+      .decryptData(user.email)
+      .then((result) => emailService.sendOTP(result, otp));
+
     return otp;
   }
 }
