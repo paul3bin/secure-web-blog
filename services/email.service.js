@@ -12,7 +12,7 @@ async function sendEmail(to, subject, text) {
     text: text,
     html: `<strong>${text}</strong>`,
   };
-  sgMail
+  await sgMail
     .send(msg)
     .then(() => {
       console.log("Email sent");
@@ -22,4 +22,12 @@ async function sendEmail(to, subject, text) {
     });
 }
 
-module.exports = { sendEmail };
+async function sendOTP(to, otp) {
+  sendEmail(
+    to,
+    "Login one time passcode",
+    "Your login one time passcode is " + otp + ". It will expire in 5 minutes."
+  );
+}
+
+module.exports = { sendEmail, sendOTP };
