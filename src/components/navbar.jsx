@@ -23,6 +23,10 @@ const NavBar = ({ user }) => {
             <div className="d-flex">           
                 <div className= "collapse navbar-collapse" id="navbarNavAltMarkup">
                     <div className="navbar-nav">
+                    {/* {user && (<NavLink className="nav-item nav-link" to="/my-posts">
+                        My Posts
+                    </NavLink>
+                    )} */}
                     <NavLink className="nav-item nav-link" to="/posts">
                         Posts
                     </NavLink>    
@@ -41,9 +45,9 @@ const NavBar = ({ user }) => {
                             <p className="nav-item nav-link">
                                 {user.name}
                             </p>                            
-                            <NavLink className="nav-item nav-link" to="" onClick={()=>{
+                            <NavLink className="nav-item nav-link" to="" onClick={async ()=>{
                                 console.log('logout click');
-                                auth.logout();
+                                await auth.logout();
                                 window.location = "/login";
 
                             }}>

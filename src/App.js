@@ -37,8 +37,12 @@ class App extends Component {
             <Route path="/posts/:id" component={PostForm} />
             <Route
               path="/posts"
-              render={props => <Posts {...props} user={this.state.user} />}
+              render={props => <Posts {...props} user={this.state.user} myPosts={false}/>}
             />  
+            <Route
+              path="/my-posts"
+              render={props => <Posts {...props} user={this.state.user} myPosts={true} />}
+            /> 
             <Route
               path="/"
               render={props => <Posts {...props} user={this.state.user} />}

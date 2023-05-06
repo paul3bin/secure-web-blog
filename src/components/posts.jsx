@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 //import ListGroup from "./common/listGroup";
-import { getPosts, deletePost } from "../services/postService";
+import { getPosts, getMyPosts, deletePost } from "../services/postService";
 import _ from "lodash";
 import auth from "../services/authService";
 import SearchBox from "./searchBox";
@@ -11,13 +11,33 @@ import SearchBox from "./searchBox";
 class Posts extends Component {
   state = {
     posts: [],
-    userId: ""
+    userId: "",
+    myPosts: false
   };
+  constructor() {
+    super();
+    console.log('constructor');
+  }
+  
+  // loadPosts() {
+  //   const {myPosts} = this.props;
+  //   this.setState({
+  //     myPosts:myPosts
+  //   });
+  // }
 
   async componentDidMount() {
     const currentUser = auth.getCurrentUser();
     const userId = (currentUser) ? currentUser._id : ""; 
-    const response = await getPosts();
+    const {myPosts} = this.props;
+    this.setState({
+      ...this.state, myPosts:myPosts
+    });
+    let response;
+    if(this.state.myPosts)
+      response = await getMyPosts();
+    else
+      response = await getPosts();
     const posts = [...response.data.result];    
     this.setState({ posts: posts, userId: userId });
     console.log(this.state.userId);
@@ -47,12 +67,34 @@ class Posts extends Component {
 
     return (
       <div className="row"> 
-        <div className="col">          
-          <h1>Posts</h1>
+        <div className="col"> 
+        {this.state.myPosts ? <h1>My Posts</h1> : <h1>Posts</h1>}
+          
           {user && 
             (<button type="button" className="btn btn-primary" onClick={()=>{this.props.history.push("/posts/new");}}>Create New Post</button>
           )}
-          {/* <SearchBox value={searchQuery} onChange={this.handleSearch} /> */}
+
+          <div className="row" style={{marginTop: "20px"}}>
+            <div className="col-7">
+              <div className="form-group">              
+                <input id="search" className="form-control" />
+              </div>
+            </div>
+            <div className="col-3">
+              <div className="form-check form-check-inline">
+                  <input className="form-check-input" type="checkbox" name="myPosts" id="myPosts" style={{height: "17px", width:"17px"}}/>
+                  <label className="form-check-label" htmlFor="myPosts"> My Posts</label>                  
+              </div>
+              <div className="form-check form-check-inline">
+                  <input className="form-check-input" type="checkbox" name="private" id="private" style={{height: "17px", width:"17px"}}/>
+                  <label className="form-check-label" htmlFor="private"> Private</label>                  
+              </div>
+            </div>
+            <div className="col-1">
+              <button type="button" className="btn btn-primary" onClick={()=>{this.props.history.push("/posts/new");}}>Search</button>
+            </div>
+          </div>
+          
            
           {this.state.posts.map(post => (
             <div className="card" style={{margin: "10px 0"}} key={post.blog_id}>

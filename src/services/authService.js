@@ -26,7 +26,8 @@ export function loginWithJwt(jwt) {
   localStorage.setItem(tokenKey, jwt);
 }
 
-export function logout() {
+export async function logout() {
+  await http.post("/user/v1/signout");
   cookies.remove('token');
 }
 

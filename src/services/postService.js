@@ -13,20 +13,24 @@ export async function getPosts() {
   return response;
 }
 
+export async function getMyPosts() {
+  const response = await http.get('/blog/user/v1');  
+  return response;
+}
 
 export async function getPost(postId) {
   const response = await http.get('/blog/v1/' + postId);
   return response;
 }
 
-export function savePost(post) {
+export async function savePost(post) {
   if (post.blog_id && post.blog_id!='new') {
     const body = { ...post };
     delete body.blog_id;
-    return http.put('/blog/v1/' + post.blog_id, body);
+    return await http.put('/blog/v1/' + post.blog_id, body);
   }
 
-  return http.post('/blog/v1', post);
+  return await http.post('/blog/v1', post);
 }
 
 export function deletePost(postId) {
