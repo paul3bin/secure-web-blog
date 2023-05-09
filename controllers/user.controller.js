@@ -89,7 +89,10 @@ async function signIn(req, res, next) {
     //if (result.status == "fail") {
     //   return res.status(401).json(result);
     // } else {
-    if (result) return res.status(200).json(result);
+    if (result) {
+      res.setHeader("X-CSRF-Token", result.csrf_token);
+      return res.status(200).json(result.body);
+    }
     //}
   } catch (err) {
     console.error(`Error while signing user`, err.message);

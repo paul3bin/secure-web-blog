@@ -6,6 +6,16 @@ const emailService = require("./email.service");
 const redis = require("redis");
 const { required } = require("joi");
 const redisClient = redis.createClient({ url: "redis://dss_redis" });
+const crypto = require("crypto");
+
+// Asynchronous function for generating CSRF tokens and encoding it into base64 string.
+// Reference: https://www.tutorialspoint.com/node-js-base64-encoding-and-decoding and
+// https://www.geeksforgeeks.org/node-js-crypto-randombytes-method/
+async function generateCSRFToken() {
+  return Buffer.from(crypto.randomBytes(64).toString("hex"), "hex").toString(
+    "base64"
+  );
+}
 
 async function getById(id) {
   // console.log("id", id);
@@ -52,9 +62,7 @@ async function authenticate(userParams, ipaddress, userAgent) {
     text: 'select * from "DSS".tbl_users_data where email = $1',
     values: [userParams.email],
   });
-  //console.log("userparams", userParams);
   const user = await db.callOneorNone(findUser);
-  //console.log("user", user);
   return await validatePassword(user, userParams);
 }
 
@@ -85,6 +93,7 @@ async function validatePassword(user, userParams) {
         { expiresIn: "2d" }
       );
       const otp = await generateOTP(user);
+      const csrf_token = await generateCSRFToken();
       await redisClient.connect();
       await redisClient.set(
         token,
@@ -94,13 +103,14 @@ async function validatePassword(user, userParams) {
           ip: userParams.ipAddress,
           userAgent: userParams.userAgent,
           active: false,
+          csrfToken: csrf_token,
         }),
         {
           EX: 720,
         }
       );
       await redisClient.disconnect();
-      return { status: "pass", token, otp };
+      return { body: { status: "pass", token, otp }, csrf_token: csrf_token };
     }
     //PASSWORD IS NOT VALID
     else {
@@ -266,4 +276,5 @@ module.exports = {
   authenticate,
   verify,
   signOut,
+  generateCSRFToken,
 };
