@@ -1,3 +1,6 @@
+// Code References :
+// - https://www.digitalocean.com/community/tutorials/how-to-secure-node-js-applications-with-a-content-security-policy
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
@@ -36,6 +39,10 @@ app.use((req, res, next) => {
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET, POST, PATCH, PUT, DELETE, OPTIONS"
+  );
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; font-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; frame-src 'self'"
   );
   next();
 });
