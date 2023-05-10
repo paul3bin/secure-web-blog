@@ -22,6 +22,8 @@ services:
       - REDIS_URL=redis://dss_redis
     depends_on:
       - redis
+    networks:
+      - dss-net
 
   ui:
     platform: linux/amd64
@@ -32,11 +34,13 @@ services:
       context: ./frontend/
       dockerfile: Dockerfile
     environment:
-      - API_URL=http://localhost:8085/
+      - API_URL=http://dss_api:8085/
     ports:
       - "3000:3000"
     depends_on:
       - api
+    networks:
+      - dss-net
 
   redis:
     restart: "unless-stopped"
@@ -44,3 +48,9 @@ services:
     image: redis:alpine
     ports:
       - "6379:6379"
+    networks:
+      - dss-net
+
+networks:
+  dss-net:
+    driver: bridge
