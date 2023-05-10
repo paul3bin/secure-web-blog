@@ -1,0 +1,31 @@
+version: "3.8"
+services:
+  api:
+    platform: linux/amd64
+    restart: "unless-stopped"
+    container_name: dss_api
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "8085:8085"
+    command: npm start
+    environment:
+      - DSS_DB_HOST=mahmud.db.elephantsql.com
+      - DSS_DB_USER=wwtvmpnp
+      - DSS_DB_PASSWORD=YXOEKMod5J7J0TvV1oqn9Fowho20rZXh
+      - DSS_DB_NAME=wwtvmpnp
+      - DSS_DB_PORT=5432
+      - DSS_PORT=8085
+      - DSS_SECRET_KEY=b03eccbd67a55549070d3ea980d7f57258e5935241392de7b99438f1bbfd5379
+      - DSS_IV=3d1e5193c60c0bdd9991aa4b61af6ffb
+
+    depends_on:
+      - redis
+
+  redis:
+    restart: "unless-stopped"
+    container_name: dss_redis
+    image: redis:alpine
+    ports:
+      - "6379:6379"
