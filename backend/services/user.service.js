@@ -54,7 +54,6 @@ async function getAll() {
 }
 
 async function authenticate(userParams, ipaddress, userAgent) {
-  //console.log("userparams", userParams.email);
   userParams["ipAddress"] = ipaddress.replace("::1", "localhost");
   userParams["userAgent"] = userAgent;
   const findUser = new PS({
@@ -93,7 +92,11 @@ async function validatePassword(user, userParams) {
         { expiresIn: "2d" }
       );
       const otp = await generateOTP(user);
+
+      // Calling function to generate csrf token
       const csrf_token = await generateCSRFToken();
+      console.log(`csrf-token ${csrf_token}`);
+
       await redisClient.connect();
       await redisClient.set(
         token,
@@ -103,7 +106,7 @@ async function validatePassword(user, userParams) {
           ip: userParams.ipAddress,
           userAgent: userParams.userAgent,
           active: false,
-          csrfToken: csrf_token,
+          csrfToken: csrf_token, // adding csrf token to redis
         }),
         {
           EX: 720,
