@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const emailService = require("./email.service");
 const redis = require("redis");
 const { required } = require("joi");
-const redisClient = redis.createClient({ url: "redis://dss_redis" });
+const redisClient = redis.createClient({ url: process.env.REDIS_URL });
 const crypto = require("crypto");
 
 // Asynchronous function for generating CSRF tokens and encoding it into base64 string.
