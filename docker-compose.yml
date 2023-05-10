@@ -5,7 +5,7 @@ services:
     restart: "unless-stopped"
     container_name: dss_api
     build:
-      context: .
+      context: ./backend/
       dockerfile: ./Dockerfile
     ports:
       - "8085:8085"
@@ -19,9 +19,23 @@ services:
       - DSS_PORT=8085
       - DSS_SECRET_KEY=b03eccbd67a55549070d3ea980d7f57258e5935241392de7b99438f1bbfd5379
       - DSS_IV=3d1e5193c60c0bdd9991aa4b61af6ffb
-
     depends_on:
       - redis
+
+  ui:
+    platform: linux/amd64
+    restart: "unless-stopped"
+    command: npm start
+    container_name: dss_ui
+    build:
+      context: ./frontend/
+      dockerfile: Dockerfile
+    environment:
+      - API_URL=http://localhost:8085/
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
 
   redis:
     restart: "unless-stopped"
