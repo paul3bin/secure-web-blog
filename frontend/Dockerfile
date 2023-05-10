@@ -4,12 +4,8 @@ RUN mkdir /frontend
 
 WORKDIR /frontend
 
-COPY package.json package-lock.json ./
+COPY . /frontend/
 
 RUN npm install 
-
-RUN npm install react-scripts@5.0.1
-
-COPY . /frontend/
 
 EXPOSE 3000
