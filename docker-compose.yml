@@ -19,6 +19,7 @@ services:
       - DSS_PORT=8085
       - DSS_SECRET_KEY=b03eccbd67a55549070d3ea980d7f57258e5935241392de7b99438f1bbfd5379
       - DSS_IV=3d1e5193c60c0bdd9991aa4b61af6ffb
+      - REDIS_URL=redis://dss_redis
     depends_on:
       - redis
 

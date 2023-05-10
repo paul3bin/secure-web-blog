@@ -5,7 +5,7 @@ const randomBytes = util.promisify(crypto.randomBytes);
 const env = process.env;
 var jwt = require("jsonwebtoken");
 const redis = require("redis");
-const redisClient = redis.createClient();
+const redisClient = redis.createClient({ url: process.env.REDIS_URL });
 
 async function hashPassword(password) {
   try {

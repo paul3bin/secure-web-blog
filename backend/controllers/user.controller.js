@@ -80,7 +80,12 @@ async function create(req, res, next) {
 
 async function signIn(req, res, next) {
   try {
-    req.body.email = await auth.encryptData(req.body.email);
+    // decoding encoded email received from frontend and encrypting it
+    req.body.email = await auth.encryptData(decodeURIComponent(req.body.email));
+
+    // decoding encoded password received from frontend
+    req.body.password = decodeURIComponent(req.body.password);
+
     const result = await userService.authenticate(
       req.body,
       req.headers["x-forwarded-for"] || req.ip,
@@ -91,6 +96,7 @@ async function signIn(req, res, next) {
     // } else {
     if (result) {
       res.setHeader("X-CSRF-Token", result.csrf_token);
+      console.log(result.body);
       return res.status(200).json(result.body);
     }
     //}
