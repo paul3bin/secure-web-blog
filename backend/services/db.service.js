@@ -1,8 +1,11 @@
 const auth = require("../utils/auth");
 const pgp = require("pg-promise")();
 
+// const db = pgp(
+//   "postgres://wwtvmpnp:YXOEKMod5J7J0TvV1oqn9Fowho20rZXh@mahmud.db.elephantsql.com/wwtvmpnp"
+// );
 const db = pgp(
-  "postgres://wwtvmpnp:YXOEKMod5J7J0TvV1oqn9Fowho20rZXh@mahmud.db.elephantsql.com/wwtvmpnp"
+  `postgres://${process.env.DSS_DB_USER}:${process.env.DSS_DB_PASSWORD}@${process.env.DSS_DB_HOST}/${process.env.DSS_DB_USER}}`
 );
 
 async function callFunction(sql, params) {
