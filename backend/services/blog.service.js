@@ -3,7 +3,7 @@ const auth = require("../utils/auth");
 const { PreparedStatement: PS } = require("pg-promise");
 const jwt = require("jsonwebtoken");
 const redis = require("redis");
-const redisClient = redis.createClient();
+const redisClient = redis.createClient({ url: process.env.REDIS_URL });
 
 async function getById(id, user) {
   const getBlogById = new PS({
