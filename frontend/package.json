@@ -2,7 +2,7 @@
   "name": "web-blog",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:8085",
+  "proxy": "http://dss_api:8085",
   "dependencies": {
     "axios": "^0.18.0",
     "bootstrap": "^4.1.1",
