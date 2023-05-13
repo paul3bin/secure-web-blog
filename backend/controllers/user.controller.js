@@ -121,7 +121,7 @@ async function verify(req, res, next) {
     } else {
       const result = await userService.verify(token, req.body.otp);
       if (result.status == "fail") {
-        return res.status(401).json(result);
+        return res.status(200).json(result);
       } else {
         return res.status(200).json(result);
       }

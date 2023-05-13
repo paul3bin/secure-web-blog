@@ -98,6 +98,42 @@ async function getAll(user) {
   return { status: "fail", result };
 }
 
+async function search(searchText, user) {
+  //console.log("user get all", user);
+  var query = `select 
+      blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private,
+      tbl_users_Data.name as Author
+      from "DSS".tbl_blog_Data 
+      inner join "DSS".tbl_users_Data on tbl_blog_Data.posted_by = tbl_users_Data.user_id
+      where is_private = false and (title = $1 or body = $1)`;
+  if (user != null) {
+    query =
+      query +
+      ` union select
+      blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private,
+      tbl_users_Data.name as Author
+      from "DSS".tbl_blog_Data 
+      inner join "DSS".tbl_users_Data on tbl_blog_Data.posted_by = tbl_users_Data.user_id
+      where is_private = true and (title = $1 or body = $1) and posted_by = $2`;
+  }
+
+  const searchBlog = new PS({
+    name: "search-blog",
+    text: query,
+    values: [searchtext, user != null ? [user._id] : []],
+  });
+  const result = await db.callQuery(searchBlog);
+  if (result) {
+    if (result.length > 0) {
+      for (i = 0; i < result.length; i++) {
+        result[i].author = await auth.decryptData(result[i].author);
+      }
+    }
+    return { status: "pass", result };
+  }
+  return { status: "fail", result };
+}
+
 async function create(blog) {
   const insertBlog = new PS({
     name: "insert-blog",
