@@ -26,7 +26,7 @@ async function callQuery(sql) {
   // const db = pgp(
   //   "postgres://wwtvmpnp:YXOEKMod5J7J0TvV1oqn9Fowho20rZXh@mahmud.db.elephantsql.com/wwtvmpnp"
   // );
-
+  console.log(sql);
   const result = await db.query(sql);
   //console.log(result);
   return result;
@@ -45,8 +45,14 @@ async function callOneorNone(sql) {
   }
 }
 
+async function callAny(sql, values) {
+  //console.log(sql);
+  const result = await db.any(sql, values);
+  return result;
+}
 module.exports = {
   callFunction,
   callQuery,
   callOneorNone,
+  callAny,
 };

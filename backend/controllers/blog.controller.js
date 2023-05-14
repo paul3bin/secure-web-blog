@@ -48,6 +48,7 @@ async function getByUser(req, res, next) {
 
 async function get(req, res, next) {
   try {
+    //console.log("requser", req.user);
     res.send(await blogService.getAll(req.user));
   } catch (err) {
     console.error(`Error while getting blogs`, err.message);
@@ -132,6 +133,32 @@ async function remove(req, res, next) {
   }
 }
 
+async function search(req, res, next) {
+  try {
+    const blogSchema = Joi.object({
+      search: Joi.string().required(),
+    }).options({ abortEarly: false });
+
+    if (blogSchema.validate(req.body).error) {
+      res.send("Missing fields" + blogSchema.validate(req.body).error.message);
+    } else {
+      const result = await blogService.search(req.body.search, req.user);
+      if (result.status == "pass") {
+        res.status(200).send(result);
+      } else if (result.status == "unauthorized") {
+        res
+          .status(401)
+          .send({ status: "unauthorized", message: "Access Denied" });
+      } else {
+        res.status(404).send(result);
+      }
+    }
+  } catch (err) {
+    console.error(`Error while searching`, err.message);
+    next(err);
+  }
+}
+
 module.exports = {
   get,
   getById,
@@ -139,4 +166,5 @@ module.exports = {
   update,
   remove,
   getByUser,
+  search,
 };

@@ -95,9 +95,11 @@ async function signIn(req, res, next) {
     //   return res.status(401).json(result);
     // } else {
     if (result) {
-      res.setHeader("X-CSRF-Token", result.csrf_token);
-      console.log(result.body);
-      return res.status(200).json(result.body);
+      if (result.status == "pass") {
+        res.setHeader("X-CSRF-Token", result.csrf_token);
+        console.log(result.body);
+        return res.status(200).json(result.body);
+      } else return res.status(200).json(result);
     }
     //}
   } catch (err) {

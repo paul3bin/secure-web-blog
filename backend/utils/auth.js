@@ -129,6 +129,10 @@ function authorize() {
                 .status(401)
                 .send({ status: "unauthorised", message: "Invalid Session" });
             } else {
+              redisClient.connect();
+              redisClient.set(token, data, {
+                EX: 720,
+              });
               req.user = decoded;
             }
             next();
