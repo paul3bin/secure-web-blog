@@ -38,20 +38,7 @@ async function getById(id) {
   return result;
 }
 
-async function getAll() {
-  /* const result = await db.callQuery(
-    'select * from "DSS"."tbl_users_data"',
-    null
-  );
-  if (result.length > 0) {
-    result[0].name = await auth.decryptData(result[0].name);
-    result[0].phone_number = await auth.decryptData(result[0].phone_number);
-    return result;
-  } else {
-    return null;
-  }
-  return result;*/
-}
+async function getAll() {}
 
 async function authenticate(userParams, ipaddress, userAgent) {
   userParams["ipAddress"] = ipaddress.replace("::1", "localhost");
@@ -129,7 +116,7 @@ async function validatePassword(user, userParams) {
           status: "fail",
           message: "Your Account is Locked. Please contact the administrator",
         };
-      else return { status: "fail", message: "Invalid OTP" };
+      else return { status: "fail", message: "Invalid Credentials" };
     }
   }
   //IF THE EMAIL IS NOT FOUND LOCK THE IP AFTER 5 ATTEMPTS.
@@ -156,7 +143,15 @@ async function verifyRegistrationToken(user, code) {
   await redisClient.disconnect();
   if (otp) {
     if (otp.value == code) {
-      //console.log("valid otp");
+      const updateUser = new PS({
+        name: "update-user",
+        text: 'Update "DSS".tbl_users_data set isActive = true where email = $1',
+        values: [user.email],
+      });
+      db.callOneorNone(updateUser);
+      return { status: "pass", message: "User verified" };
+    } else {
+      return { status: "fail", message: "invalid token" };
     }
   }
 }
@@ -217,6 +212,11 @@ async function create(user) {
     return { status: "fail", message: "Email already exists" };
   } else {
     const otp = generateOTP(user);
+    await redisClient.connect();
+    await redisClient.set(user.email, otp, {
+      EX: 720,
+    });
+    await redisClient.disconnect();
     return { status: "pass", message: "User created succesfully" };
   }
 }

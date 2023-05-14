@@ -95,12 +95,14 @@ async function signIn(req, res, next) {
     //   return res.status(401).json(result);
     // } else {
     if (result) {
-      if (result.body.status == "pass") {
+      if (result.body && result.body.status == "pass") {
+        //console.log("pass");
         res.setHeader("X-CSRF-Token", result.csrf_token);
-        //console.log(result);
-
         return res.status(200).json(result.body);
-      } else return res.status(200).json(result.body);
+      } else {
+        //console.log("inside fail", result);
+        return res.status(200).json(result);
+      }
     }
     //}
   } catch (err) {
