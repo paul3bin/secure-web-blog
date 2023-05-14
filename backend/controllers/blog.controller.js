@@ -15,9 +15,7 @@ async function getById(req, res, next) {
       if (result.status == "pass") {
         res.status(200).send(result);
       } else if (result.status == "unauthorized") {
-        res
-          .status(401)
-          .send({ status: "unauthorized", message: "Access Denied" });
+        res.status(401).send({ status: "fail", message: "Access Denied" });
       } else {
         res.status(404).send(result);
       }
@@ -33,12 +31,6 @@ async function getByUser(req, res, next) {
     const result = await blogService.getByUser(req.user);
     if (result.status == "pass") {
       res.status(200).send(result);
-    } else if (result.status == "unauthorized") {
-      res
-        .status(401)
-        .send({ status: "unauthorized", message: "Access Denied" });
-    } else {
-      res.status(404).send(result);
     }
   } catch (err) {
     console.error(`Error while getting users by id`, err.message);
@@ -49,7 +41,7 @@ async function getByUser(req, res, next) {
 async function get(req, res, next) {
   try {
     //console.log("requser", req.user);
-    res.send(await blogService.getAll(req.user));
+    res.status(200).send(await blogService.getAll(req.user));
   } catch (err) {
     console.error(`Error while getting blogs`, err.message);
     next(err);
@@ -65,7 +57,7 @@ async function create(req, res, next) {
     }).options({ abortEarly: false });
 
     if (blogSchema.validate(req.body).error) {
-      res.send(blogSchema.validate(req.body).error.message);
+      res.status(400).send(blogSchema.validate(req.body).error.message);
     } else {
       const blog = {
         title: req.body.title,
@@ -76,12 +68,8 @@ async function create(req, res, next) {
       };
       const result = await blogService.create(blog);
       // console.log(result);
-      if (result.status == "pass")
-        return res.status(200).send("Blog created succesfully");
-      else if (result.status == "fail")
-        return res.status(406).send("Error creating the blog");
-      else if (result.status == "unauthorized")
-        return res.status(404).send("Access Denied");
+      if (result.status == "pass") return res.status(200).send(result);
+      else if (result.status == "fail") return res.status(200).send(result);
     }
   } catch (err) {
     console.error(`Error while creating blog`, err.message);
@@ -98,7 +86,7 @@ async function update(req, res, next) {
     }).options({ abortEarly: false });
 
     if (blogSchema.validate(req.body).error) {
-      res.send(blogSchema.validate(req.body).error.message);
+      res.status(400).send(blogSchema.validate(req.body).error.message);
     } else {
       const blog = {
         title: req.body.title,
@@ -111,9 +99,9 @@ async function update(req, res, next) {
       if (result.status == "unauthorized") {
         res.status(401).send("Access Denied");
       } else if (result.status == "fail") {
-        res.status(404).send("Blog not found");
+        res.status(404).send(result);
       } else if (result.status == "pass") {
-        res.status(200).send("Blog updated succesfully.");
+        res.status(200).send(result);
       }
     }
   } catch (err) {
@@ -125,7 +113,13 @@ async function update(req, res, next) {
 async function remove(req, res, next) {
   try {
     if (req.params.id.length > 0) {
-      res.json(await blogService.remove(req.params.id, req.user));
+      result = await blogService.remove(req.params.id, req.user);
+      if (result.status == "pass") {
+        return res.status(200).send(result);
+      } else if (result.status == "fail") {
+        return res.status(400).send(result);
+      }
+      res.json();
     }
   } catch (err) {
     console.error(`Error while deleting blog`, err.message);
@@ -140,18 +134,12 @@ async function search(req, res, next) {
     }).options({ abortEarly: false });
 
     if (blogSchema.validate(req.body).error) {
-      res.send("Missing fields" + blogSchema.validate(req.body).error.message);
+      res
+        .status(400)
+        .send("Missing fields" + blogSchema.validate(req.body).error.message);
     } else {
       const result = await blogService.search(req.body.search, req.user);
-      if (result.status == "pass") {
-        res.status(200).send(result);
-      } else if (result.status == "unauthorized") {
-        res
-          .status(401)
-          .send({ status: "unauthorized", message: "Access Denied" });
-      } else {
-        res.status(404).send(result);
-      }
+      res.status(200).send(result);
     }
   } catch (err) {
     console.error(`Error while searching`, err.message);
