@@ -228,7 +228,7 @@ async function create(user) {
   if (result["usp_users_insert"] == "-1") {
     return { status: "fail", message: "Email already exists" };
   } else {
-    const otp = generateOTP(user);
+    const otp = await generateOTP(user);
     await redisClient.connect();
     await redisClient.set(user.email, otp, {
       EX: 720,
