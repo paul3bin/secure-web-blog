@@ -125,7 +125,7 @@ async function update(req, res, next) {
 async function remove(req, res, next) {
   try {
     if (req.params.id.length > 0) {
-      res.json(await blogService.remove(req.params.id));
+      res.json(await blogService.remove(req.params.id, req.user));
     }
   } catch (err) {
     console.error(`Error while deleting blog`, err.message);

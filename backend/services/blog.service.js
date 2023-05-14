@@ -197,16 +197,16 @@ async function update(id, blog) {
   }
 }
 
-async function remove(id) {
+async function remove(id, user) {
   const findBlog = new PS({
     name: "find-blog",
     text: 'select blog_id, posted_by, is_private from "DSS".tbl_blog_data where blog_id = $1',
     values: [id],
   });
   const blogResult = await db.callQuery(findBlog);
-  //console.log(blogResult);
+  //console.log("blogresult", blogResult);
   if (blogResult != null && blogResult.length > 0) {
-    if (blogResult[0].posted_by != blog.posted_by) {
+    if (blogResult[0].posted_by != user._id) {
       return { status: "unauthorized", message: "Access denied" };
     }
     const deleteBlog = new PS({

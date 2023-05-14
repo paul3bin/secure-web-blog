@@ -14,7 +14,7 @@ router.get("/v1/", util.allow(), blogController.get);
 router.get("/v1/:id", util.allow(), blogController.getById);
 router.get("/user/v1", util.authorize(), blogController.getByUser);
 router.delete(
-  "/v1/",
+  "/v1/:id",
   util.authorize(),
   util.verifyCSRF(),
   blogController.remove
