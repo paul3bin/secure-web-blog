@@ -138,7 +138,7 @@ async function search(searchText, user) {
     }
     return { status: "pass", result };
   }
-  return { status: "fail", result };
+  return { status: "pass", result };
 }
 
 async function create(blog) {

@@ -139,15 +139,7 @@ async function search(req, res, next) {
         .send("Missing fields" + blogSchema.validate(req.body).error.message);
     } else {
       const result = await blogService.search(req.body.search, req.user);
-      if (result.status == "pass") {
-        res.status(200).send(result);
-      } else if (result.status == "unauthorized") {
-        res
-          .status(401)
-          .send({ status: "unauthorized", message: "Access Denied" });
-      } else {
-        res.status(404).send(result);
-      }
+      res.status(200).send(result);
     }
   } catch (err) {
     console.error(`Error while searching`, err.message);
