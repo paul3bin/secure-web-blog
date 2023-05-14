@@ -101,38 +101,42 @@ function authorize() {
   return (req, res, next) => {
     const token = req.headers["authorization"];
     if (!token) {
-      return res.status(401).send("Access Denied");
+      return res.status(401).send({ status: "fail", message: "Access Denied" });
     } else {
       jwt.verify(
         token,
         process.env.DSS_SECRET_KEY,
         async function (err, decoded) {
           if (err) {
-            return res.status(400).send({ message: "Bad Request" });
+            //Not a valid JWT Token.
+            return res
+              .status(401)
+              .send({ status: "fail", message: "Access Denied" });
           }
           if (
             decoded.ipAddress != req.ip.replace("::1", "localhost") ||
             decoded.userAgent != req.headers["user-agent"]
           ) {
-            console.log("invalid here 1");
+            //Request didn't come from the same ip and useragent as the token
             return res
               .status(401)
-              .send({ status: "unauthorised", message: "Invalid session" });
+              .send({ status: "fail", message: "Access Denied" });
           } else {
             await redisClient.connect();
             const data = await redisClient.get(token);
             // console.log(data);
             await redisClient.disconnect();
             if (data == null) {
-              console.log("invalid here 2");
+              //Token expired or not found
+              //console.log("invalid here 2");
               return res
                 .status(401)
-                .send({ status: "unauthorised", message: "Invalid Session" });
+                .send({ status: "unauthorised", message: "Access Denied" });
             } else if (JSON.parse(data).active == false) {
-              console.log("invalid here 3");
+              //User not active
               return res
                 .status(401)
-                .send({ status: "unauthorised", message: "Invalid Session" });
+                .send({ status: "unauthorised", message: "Access Denied" });
             } else {
               redisClient.connect();
               redisClient.set(token, data, {
@@ -174,22 +178,22 @@ function verifyCSRF() {
               next();
             } else {
               return res
-                .status(403)
-                .send({ status: "unauthorised", message: "Invalid request" });
+                .status(401)
+                .send({ status: "unauthorised", message: "Access Denied" });
             }
           });
         } else {
           return res
-            .status(403)
-            .send({ status: "unauthorised", message: "Invalid request" });
+            .status(401)
+            .send({ status: "unauthorised", message: "Access Denied" });
         }
       } else {
         next();
       }
     } else {
       return res
-        .status(403)
-        .send({ status: "unauthorised", message: "Invalid request" });
+        .status(401)
+        .send({ status: "unauthorised", message: "Access Denied" });
     }
   };
 }

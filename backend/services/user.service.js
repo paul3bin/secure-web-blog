@@ -56,6 +56,12 @@ async function authenticate(userParams, ipaddress, userAgent) {
 async function validatePassword(user, userParams) {
   //IF VALID EMAIL ADDRESS
   if (user) {
+    if (!user.is_activated) {
+      return {
+        status: "fail",
+        message: "Activate your account",
+      };
+    }
     if (user.lock_account) {
       //  console.log("inside user account locked");
       return {
@@ -151,13 +157,13 @@ async function verifyRegistration(token, code) {
         text: 'Update "DSS".tbl_users_data set is_activated = true where email = $1',
         values: [token],
       });
-      db.callOneorNone(updateUser);
-      redisClient.connect();
-      redisClient.del(token);
-      redisClient.disconnect();
+      await db.callOneorNone(updateUser);
+      await redisClient.connect();
+      await redisClient.del(token);
+      await redisClient.disconnect();
       return { status: "pass", message: "User verified" };
     } else {
-      return { status: "fail", message: "invalid token" };
+      return { status: "fail", message: "invalid code" };
     }
   }
 }
@@ -215,7 +221,7 @@ async function verify(token, code) {
       }
       return { status: "fail", message: "invalid code" };
     }
-  } else return { status: "fail", message: "invalid token" };
+  } else return { status: "fail", message: "invalid code" };
 }
 
 async function create(user) {
