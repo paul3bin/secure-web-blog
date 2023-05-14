@@ -172,13 +172,13 @@ function verifyCSRF() {
             } else {
               return res
                 .status(401)
-                .send({ status: "Forbidden", message: "Invalid request" });
+                .send({ status: "fail", message: "Invalid request" });
             }
           });
         } else {
           return res
             .status(401)
-            .send({ status: "Forbidden", message: "Invalid request" });
+            .send({ status: "fail", message: "Invalid request" });
         }
       } else {
         next();
@@ -186,7 +186,7 @@ function verifyCSRF() {
     } else {
       return res
         .status(401)
-        .send({ status: "Forbidden", message: "Invalid request" });
+        .send({ status: "fail", message: "Invalid request" });
     }
   };
 }
