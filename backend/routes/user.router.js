@@ -9,5 +9,6 @@ router.get("/v1/:id", util.authorize(), userController.getById);
 router.post("/v1/signin", userController.signIn);
 router.post("/v1/verify", util.verifyCSRF(), userController.verify);
 router.post("/v1/signout", util.authorize(), userController.signOut);
+router.post("/v1/verifyRegistration", userController.verifyRegistration);
 
 module.exports = router;

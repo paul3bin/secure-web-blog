@@ -140,18 +140,21 @@ async function generateOTP(user) {
   }
 }
 
-async function verifyRegistrationToken(user, code) {
+async function verifyRegistration(token, code) {
   await redisClient.connect();
-  const otp = JSON.parse(await redisClient.get(user.email));
+  const userToken = JSON.parse(await redisClient.get(token));
   await redisClient.disconnect();
-  if (otp) {
-    if (otp.value == code) {
+  if (userToken) {
+    if (userToken == code) {
       const updateUser = new PS({
         name: "update-user",
-        text: 'Update "DSS".tbl_users_data set isActive = true where email = $1',
-        values: [user.email],
+        text: 'Update "DSS".tbl_users_data set is_activated = true where email = $1',
+        values: [token],
       });
       db.callOneorNone(updateUser);
+      redisClient.connect();
+      redisClient.del(token);
+      redisClient.disconnect();
       return { status: "pass", message: "User verified" };
     } else {
       return { status: "fail", message: "invalid token" };
@@ -229,12 +232,17 @@ async function create(user) {
     return { status: "fail", message: "Email already exists" };
   } else {
     const otp = await generateOTP(user);
+    console.log("otp", otp);
     await redisClient.connect();
     await redisClient.set(user.email, otp, {
       EX: 720,
     });
     await redisClient.disconnect();
-    return { status: "pass", message: "User created succesfully" };
+    return {
+      status: "pass",
+      message: "User created succesfully",
+      token: user.email,
+    };
   }
 }
 
@@ -303,4 +311,5 @@ module.exports = {
   verify,
   signOut,
   generateCSRFToken,
+  verifyRegistration,
 };

@@ -136,6 +136,31 @@ async function verify(req, res, next) {
   }
 }
 
+async function verifyRegistration(req, res, next) {
+  const token = req.headers["authorization"];
+  if (token) {
+    const userSchema = Joi.object({
+      otp: Joi.string()
+        .required()
+        .length(6)
+        .regex(/^[0-9]+$/),
+    });
+
+    if (userSchema.validate(req.body).error) {
+      return res.status(406).json(userSchema.validate(req.body).error.message);
+    } else {
+      const result = await userService.verifyRegistration(token, req.body.otp);
+      if (result.status == "fail") {
+        return res.status(200).json(result);
+      } else {
+        return res.status(200).json(result);
+      }
+    }
+  } else {
+    return res.status(400).json({ status: "fail", message: "Bad Request" });
+  }
+}
+
 async function update(req, res, next) {
   try {
   } catch (err) {
@@ -175,4 +200,5 @@ module.exports = {
   signIn,
   verify,
   signOut,
+  verifyRegistration,
 };
