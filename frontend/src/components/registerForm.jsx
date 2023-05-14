@@ -50,6 +50,7 @@ class RegisterForm extends Form {
   };
 
   componentDidMount(){
+    auth.removeCookies();
     loadCaptchaEnginge(4,'black','white');
   }
 

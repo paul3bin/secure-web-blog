@@ -38,3 +38,8 @@ export async function savePost(post) {
 export async function deletePost(postId) {
   return await http.delete('/blog/v1/' + postId);
 }
+
+export async function searchPosts(search) {
+  const response = await http.post('/blog/search/v1', {search: search});  
+  return response;
+}
