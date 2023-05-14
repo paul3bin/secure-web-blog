@@ -93,7 +93,7 @@ async function validatePassword(user, userParams) {
           _id: user.user_id,
           value: otp,
           email: user.email,
-          ip: userParams.ipAddress,
+          ipAddress: userParams.ipAddress,
           userAgent: userParams.userAgent,
           active: false,
           csrfToken: csrf_token, // adding csrf token to redis
@@ -164,7 +164,7 @@ async function verify(token, code) {
   const otp = JSON.parse(await redisClient.get(token));
   await redisClient.disconnect();
   if (otp) {
-    //console.log(otp.value, code);
+    console.log(otp);
     if (otp.value == code) {
       await redisClient.connect();
       redisClient.del(token);
@@ -184,7 +184,7 @@ async function verify(token, code) {
         JSON.stringify({
           _id: otp._id,
           email: otp.email,
-          ip: otp.ipAddress,
+          ipAddress: otp.ipAddress,
           userAgent: otp.userAgent,
           active: true,
         }),
@@ -264,9 +264,10 @@ async function update(id, user) {
 }
 
 async function signOut(token) {
-  // console.log("logging out");
+  console.log("logging out");
   await redisClient.connect();
   const found = JSON.parse(await redisClient.get(token));
+  console.log(found);
   if (found) {
     await redisClient.del(token);
     await redisClient.disconnect();

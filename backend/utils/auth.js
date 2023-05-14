@@ -114,6 +114,7 @@ function authorize() {
             decoded.ipAddress != req.ip.replace("::1", "localhost") ||
             decoded.userAgent != req.headers["user-agent"]
           ) {
+            console.log("invalid here 1");
             return res
               .status(401)
               .send({ status: "unauthorised", message: "Invalid session" });
@@ -123,10 +124,12 @@ function authorize() {
             // console.log(data);
             await redisClient.disconnect();
             if (data == null) {
+              console.log("invalid here 2");
               return res
                 .status(401)
                 .send({ status: "unauthorised", message: "Invalid Session" });
             } else if (JSON.parse(data).active == false) {
+              console.log("invalid here 3");
               return res
                 .status(401)
                 .send({ status: "unauthorised", message: "Invalid Session" });
