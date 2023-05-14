@@ -157,6 +157,7 @@ function verifyCSRF() {
     // getting the csrf token and authorisation token from header
     const csrf_token = req.headers["x-csrf-token"];
     const token = req.headers["authorization"];
+    const cookie_csrf = decodeURIComponent(req.cookie("csrf"));
 
     // checking if token is received
     if (csrf_token) {
@@ -170,7 +171,10 @@ function verifyCSRF() {
         if (data) {
           data.then((value) => {
             // comparing the stored and received csrf token
-            if (JSON.parse(value).csrfToken == csrf_token) {
+            if (
+              JSON.parse(value).csrfToken == csrf_token &&
+              cookie_csrf == csrf_token
+            ) {
               next();
             } else {
               return res
