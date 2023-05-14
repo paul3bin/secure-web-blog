@@ -49,6 +49,7 @@ async function authenticate(userParams, ipaddress, userAgent) {
     values: [userParams.email],
   });
   const user = await db.callOneorNone(findUser);
+
   return await validatePassword(user, userParams);
 }
 
@@ -68,6 +69,7 @@ async function validatePassword(user, userParams) {
       user.password_hash
     );
     if (validPassword) {
+      console.log(user.user_id.toString());
       const token = jwt.sign(
         {
           _id: user.user_id,
@@ -88,6 +90,7 @@ async function validatePassword(user, userParams) {
       await redisClient.set(
         token,
         JSON.stringify({
+          _id: user.user_id,
           value: otp,
           email: user.email,
           ip: userParams.ipAddress,
@@ -167,7 +170,7 @@ async function verify(token, code) {
       redisClient.del(token);
       token = jwt.sign(
         {
-          _id: otp.user_id,
+          _id: otp._id,
           ipAddress: otp.ipAddress,
           userAgent: otp.userAgent,
           email: otp.email,
@@ -179,6 +182,7 @@ async function verify(token, code) {
       await redisClient.set(
         token,
         JSON.stringify({
+          _id: otp._id,
           email: otp.email,
           ip: otp.ipAddress,
           userAgent: otp.userAgent,
@@ -189,6 +193,7 @@ async function verify(token, code) {
         }
       );
       await redisClient.disconnect();
+      console.log(token);
       return { status: "pass", message: "User activated", token: token };
     } else {
       //increment 2fa attempt count
