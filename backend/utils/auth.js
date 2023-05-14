@@ -162,7 +162,7 @@ function verifyCSRF() {
         // connecting to redis database and getting the stored data based on user auth token
         redisClient.connect();
         const data = redisClient.get(token);
-
+        redisClient.disconnect();
         // checking if data is present or not
         if (data) {
           data.then((value) => {
@@ -172,13 +172,13 @@ function verifyCSRF() {
             } else {
               return res
                 .status(403)
-                .send({ status: "unauthorised", message: "Invalid request" });
+                .send({ status: "Forbidden", message: "Invalid request" });
             }
           });
         } else {
           return res
             .status(403)
-            .send({ status: "unauthorised", message: "Invalid request" });
+            .send({ status: "Forbidden", message: "Invalid request" });
         }
       } else {
         next();
@@ -186,7 +186,7 @@ function verifyCSRF() {
     } else {
       return res
         .status(403)
-        .send({ status: "unauthorised", message: "Invalid request" });
+        .send({ status: "Forbidden", message: "Invalid request" });
     }
   };
 }
