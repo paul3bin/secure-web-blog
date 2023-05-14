@@ -5,6 +5,7 @@ import NavBar from "./components/navbar";
 import LoginForm from "./components/loginForm";
 import LoginVerifyForm from "./components/loginVerifyForm";
 import RegisterForm from "./components/registerForm";
+import RegisterVerifyForm from "./components/registerVerifyForm";
 import Posts from "./components/posts";
 import PostForm from "./components/postForm";
 import PageNotFound from "./components/404-not-found";
@@ -32,9 +33,11 @@ class App extends Component {
         <NavBar user={user} />
         <main className="container">
           <Switch>            
-            <Route path="/login" component={LoginForm} />
-            <Route path="/verify" component={LoginVerifyForm} />
+            <Route path="/login/verify" component={LoginVerifyForm} />
+            <Route path="/login" component={LoginForm} />            
+            <Route path="/register/verify" component={RegisterVerifyForm} />
             <Route path="/register" component={RegisterForm} />
+            
             <Route path="/posts/:id" component={PostForm} />
             <Route
               path="/posts"

@@ -19,6 +19,10 @@ class LoginForm extends Form {
     password: Joi.string().required().label("Password"),
   };
 
+  componentDidMount = async() =>{
+    auth.removeCookies();
+  }
+
   doSubmit = async () => {
     try {
       const { data } = this.state;
@@ -27,7 +31,7 @@ class LoginForm extends Form {
         encodeURIComponent(data.password)
       );
       if (response && response.data && response.data.status === "pass") {
-        window.location = "/verify";
+        window.location = "/login/verify";
       } else {
         toast.error(response.data.message);
       }

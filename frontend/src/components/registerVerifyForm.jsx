@@ -40,10 +40,10 @@ class RegisterVerifyForm extends Form {
     return (
       <div className="row justify-content-center">
         <div className="col-8">
-          <h1>Verify Login</h1>
+          <h1>Verify your email address</h1>
           <form onSubmit={this.handleSubmit}>
-            {this.renderInput("otp", "Enter Otp", "text", "required")}
-            {this.renderButton("Verify email address by entering the OTP")}
+            {this.renderInput("otp", "Please enter the OTP received on your registered email address for verification.", "text", "required")}
+            {this.renderButton("verify OTP")}
             <div className="m-t-10">
               <p>
                 Go to register page?{" "}

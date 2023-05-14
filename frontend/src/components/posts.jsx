@@ -2,17 +2,18 @@ import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 //import ListGroup from "./common/listGroup";
-import { getPosts, getMyPosts, deletePost } from "../services/postService";
+import { getPosts, getMyPosts, deletePost, searchPosts } from "../services/postService";
 import _ from "lodash";
 import auth from "../services/authService";
 import SearchBox from "./searchBox";
-
+import Form from "./common/form";
 
 class Posts extends Component {
   state = {
     posts: [],
     userId: "",
-    myPosts: false
+    myPosts: false,
+    search: ""
   };
   constructor() {
     super();
@@ -62,7 +63,15 @@ class Posts extends Component {
   };
 
   handleSearch = async () =>{
-
+    this.setState({ posts: []});
+    let response;
+    if(!this.state.search){
+      response = await getPosts();
+    }
+    else 
+      response = await searchPosts(this.state.search);
+    const posts = [...response.data.result];    
+    this.setState({ posts: posts});
   }
 
   render() {
@@ -81,12 +90,23 @@ class Posts extends Component {
           )}
 
           <div className="row" style={{marginTop: "20px"}}>
-            <div className={user ? "col-7" : "col-10"}>
+            <div className={user ? "col-10" : "col-10"}>
               <div className="form-group">              
-                <input id="search" className="form-control" />
+                <input id="search" className="form-control" name="search" value={this.state.search} 
+                  onChange={(e)=>
+                  {
+                    this.setState({search : e.target.value});
+                  }} 
+                  onKeyDown = {(e)=>
+                  {
+                    if(e.key === "Enter" ){
+                      this.handleSearch();
+                    }
+                  }} 
+                />                
               </div>
             </div>
-            {user &&
+            {/* {user &&
               <div className="col-3">
                 <div className="form-check form-check-inline">
                     <input className="form-check-input" type="checkbox" name="myPosts" id="myPosts" style={{height: "17px", width:"17px"}}/>
@@ -97,7 +117,7 @@ class Posts extends Component {
                     <label className="form-check-label" htmlFor="private"> Private</label>                  
                 </div>
               </div>
-            }
+            } */}
             <div className="col-1">
               <button type="button" className="btn btn-primary" onClick={()=>{this.handleSearch()}}>Search</button>
             </div>

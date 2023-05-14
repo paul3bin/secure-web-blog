@@ -16,7 +16,7 @@ class LoginVerifyForm extends Form {
   };
 
   componentDidMount = async () =>{
-    
+
   }
   doSubmit = async () => {
     try {
@@ -28,7 +28,7 @@ class LoginVerifyForm extends Form {
         toast.error(response.data.message);
       }
     } catch (ex) {
-      console.log("ex", ex);
+      console.log("ex", ex.response.data);
       if (ex.response && ex.response.status === 400) {
         const errors = { ...this.state.errors };
         errors.email = ex.response.data;
