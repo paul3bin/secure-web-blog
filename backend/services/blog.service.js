@@ -38,7 +38,7 @@ async function getById(id, user) {
 }
 
 async function getByUser(user) {
-  console.log("insie user", user._id);
+  //console.log("insie user", user._id);
   var query = `select
       blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private,
       tbl_users_Data.name as Author
@@ -203,7 +203,7 @@ async function remove(id, user) {
     text: 'select blog_id, posted_by, is_private from "DSS".tbl_blog_data where blog_id = $1',
     values: [id],
   });
-  const blogResult = await db.callQuery(findBlog);
+  //const blogResult = await db.callQuery(findBlog);
   //console.log("blogresult", blogResult);
   if (blogResult != null && blogResult.length > 0) {
     if (blogResult[0].posted_by != user._id) {

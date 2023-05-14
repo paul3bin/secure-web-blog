@@ -92,10 +92,10 @@ async function validatePassword(user, userParams) {
         { expiresIn: "2d" }
       );
       const otp = await generateOTP(user);
-
+      console.log("otp", otp);
       // Calling function to generate csrf token
       const csrf_token = await generateCSRFToken();
-      console.log(`csrf-token ${csrf_token}`);
+      //console.log(`csrf-token ${csrf_token}`);
 
       await redisClient.connect();
       await redisClient.set(
@@ -113,7 +113,7 @@ async function validatePassword(user, userParams) {
         }
       );
       await redisClient.disconnect();
-      return { body: { status: "pass", token, otp }, csrf_token: csrf_token };
+      return { body: { status: "pass", token: token }, csrf_token: csrf_token };
     }
     //PASSWORD IS NOT VALID
     else {
@@ -156,7 +156,7 @@ async function verifyRegistrationToken(user, code) {
   await redisClient.disconnect();
   if (otp) {
     if (otp.value == code) {
-      console.log("valid otp");
+      //console.log("valid otp");
     }
   }
 }
@@ -165,16 +165,9 @@ async function verify(token, code) {
   await redisClient.connect();
   const otp = JSON.parse(await redisClient.get(token));
   await redisClient.disconnect();
-  //console.log(otp.value, code);
+  console.log(otp.value, code);
   if (otp) {
     if (otp.value == code) {
-      console.log("valid otp");
-      // const unlockUser = new PS({
-      //   name: "activate-user",
-      //   text: 'Update "DSS".tbl_users_data set lock_account = false where email = $1',
-      //   values: [otp.email],
-      // });
-      // const result = await db.callOneorNone(UnlockAccount);
       await redisClient.connect();
       await redisClient.set(
         token,
