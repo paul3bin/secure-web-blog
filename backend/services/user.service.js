@@ -160,10 +160,22 @@ async function verify(token, code) {
   await redisClient.connect();
   const otp = JSON.parse(await redisClient.get(token));
   await redisClient.disconnect();
-  console.log(otp.value, code);
   if (otp) {
+    //console.log(otp.value, code);
     if (otp.value == code) {
       await redisClient.connect();
+      redisClient.del(token);
+      token = jwt.sign(
+        {
+          _id: otp.user_id,
+          ipAddress: otp.ipAddress,
+          userAgent: otp.userAgent,
+          email: otp.email,
+          active: true,
+        },
+        process.env.DSS_SECRET_KEY,
+        { expiresIn: "2d" }
+      );
       await redisClient.set(
         token,
         JSON.stringify({
@@ -177,7 +189,7 @@ async function verify(token, code) {
         }
       );
       await redisClient.disconnect();
-      return { status: "pass", message: "User activated" };
+      return { status: "pass", message: "User activated", token: token };
     } else {
       //increment 2fa attempt count
       const updateUserTwofaAttempts = new PS({
