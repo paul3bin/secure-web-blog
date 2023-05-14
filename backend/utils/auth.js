@@ -106,22 +106,28 @@ function authorize() {
         process.env.DSS_SECRET_KEY,
         async function (err, decoded) {
           if (err) {
-            return res.status(400).send("Bad Request ");
+            return res.status(400).send({ message: "Bad Request" });
           }
           if (
             decoded.ipAddress != req.ip.replace("::1", "localhost") ||
             decoded.userAgent != req.headers["user-agent"]
           ) {
-            return res.status(401).send("Invalid session");
+            return res
+              .status(401)
+              .send({ status: "unauthorised", message: "Invalid session" });
           } else {
             await redisClient.connect();
             const data = await redisClient.get(token);
             // console.log(data);
             await redisClient.disconnect();
             if (data == null) {
-              return res.status(401).send("Invalid Session");
+              return res
+                .status(401)
+                .send({ status: "unauthorised", message: "Invalid Session" });
             } else if (JSON.parse(data).active == false) {
-              return res.status(401).send("Invalid Session");
+              return res
+                .status(401)
+                .send({ status: "unauthorised", message: "Invalid Session" });
             } else {
               req.user = decoded;
             }
@@ -133,6 +139,48 @@ function authorize() {
   };
 }
 
+function verifyCSRF() {
+  return (req, res, next) => {
+    // getting the csrf token and authorisation token from header
+    const csrf_token = req.headers["x-csrf-token"];
+    const token = req.headers["authorization"];
+
+    // checking if token is received
+    if (csrf_token) {
+      // checking if request method is a POST or, PUT, or DELETE
+      if (req.method in ["POST", "PUT", "DELETE"]) {
+        // connecting to redis database and getting the stored data based on user auth token
+        redisClient.connect();
+        const data = redisClient.get(token);
+
+        // checking if data is present or not
+        if (data) {
+          data.then((value) => {
+            // comparing the stored and received csrf token
+            if (JSON.parse(value).csrfToken == csrf_token) {
+              next();
+            } else {
+              return res
+                .status(403)
+                .send({ status: "unauthorised", message: "Invalid request" });
+            }
+          });
+        } else {
+          return res
+            .status(403)
+            .send({ status: "unauthorised", message: "Invalid request" });
+        }
+      } else {
+        next();
+      }
+    } else {
+      return res
+        .status(403)
+        .send({ status: "unauthorised", message: "Invalid request" });
+    }
+  };
+}
+
 module.exports = {
   hashPassword,
   comparePassword,
@@ -140,4 +188,5 @@ module.exports = {
   decryptData,
   authorize,
   allow,
+  verifyCSRF,
 };
