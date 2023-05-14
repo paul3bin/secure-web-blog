@@ -96,6 +96,8 @@ function allow() {
 }
 
 function authorize() {
+  /* This function will act as middleware for authorising user before
+   the action for the URL is carried out */
   return (req, res, next) => {
     const token = req.headers["authorization"];
     if (!token) {
@@ -144,6 +146,10 @@ function authorize() {
 }
 
 function verifyCSRF() {
+  /*
+  function that will act as a middleware to verify CSRF token before all 
+  POST, PUT and DELETE request are carried out
+  */
   return (req, res, next) => {
     // getting the csrf token and authorisation token from header
     const csrf_token = req.headers["x-csrf-token"];
