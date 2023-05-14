@@ -7,6 +7,7 @@ import LoginVerifyForm from "./components/loginVerifyForm";
 import RegisterForm from "./components/registerForm";
 import Posts from "./components/posts";
 import PostForm from "./components/postForm";
+import PageNotFound from "./components/404-not-found";
 import ProtectedRoute from "./components/common/protectedRoute";
 // import NotFound from "./components/notFound";
 // import Logout from "./components/logout";
@@ -43,10 +44,13 @@ class App extends Component {
               path="/my-posts"
               render={props => <Posts {...props} user={this.state.user} myPosts={true} />}
             /> 
-            <Route
+            <Route path="/not-found" component={PageNotFound} />
+            {/* <Route
               path="/"
               render={props => <Posts {...props} user={this.state.user} />}
-            />  
+            />   */}            
+            <Redirect from="/" exact to="/posts" />
+            <Redirect to="/not-found" />
           </Switch>
         </main> 
       </React.Fragment>

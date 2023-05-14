@@ -26,7 +26,7 @@ class LoginForm extends Form {
         encodeURIComponent(data.email),
         encodeURIComponent(data.password)
       );
-      if (response && response.data && response.data.status == "pass") {
+      if (response && response.data && response.data.status === "pass") {
         window.location = "/verify";
       } else {
         toast.error(response.data.message);
@@ -52,6 +52,7 @@ class LoginForm extends Form {
             {this.renderInput("email", "Email", "text", "required")}
             {this.renderInput("password", "Password", "password", "required")}
             {this.renderButton("Login")}
+            <button className="btn btn-secondary" style={{marginLeft: "10px"}} onClick={()=>{window.location = "/posts";}}> Cancel </button>
             <div className="m-t-10">
               <p>
                 Not Registered?{" "}

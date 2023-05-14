@@ -8,7 +8,7 @@ axios.interceptors.response.use(null, error => {
     error.response &&
     error.response.status >= 400 &&
     error.response.status < 500;
-
+  //console.log(error.response.data);
   if (!expectedError) {
     //logger.log(error);
     toast.error("An unexpected error occurrred.");
@@ -16,13 +16,19 @@ axios.interceptors.response.use(null, error => {
   else if (error.response.status == 401){
     toast.error("Unauthorized access");    
   }
-
+  /*else if (error.response.status == 406){
+    toast.error(error.response.message);    
+  }*/
+  //return error;
   return Promise.reject(error);
 });
 
 function setJwt(jwt) {
   axios.defaults.headers.common["x-auth-token"] = jwt;
   axios.defaults.headers.common["Authorization"] = jwt;
+}
+function setCSRF(){
+  axios.defaults.headers.common["X-CSRF-TOKEN"] = cookies.get('csrf');;
 }
 // Add a request interceptor
 axios.interceptors.request.use(function (config) {
@@ -38,5 +44,7 @@ export default {
   post: axios.post,
   put: axios.put,
   delete: axios.delete,
-  setJwt
+  setJwt,
+  setCSRF
+
 };

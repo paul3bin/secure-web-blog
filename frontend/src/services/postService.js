@@ -29,10 +29,12 @@ export async function savePost(post) {
     delete body.blog_id;
     return await http.put('/blog/v1/' + post.blog_id, body);
   }
-
-  return await http.post('/blog/v1', post);
+  else{
+    http.setCSRF();
+    return await http.post('/blog/v1', post);
+  }  
 }
 
-export function deletePost(postId) {
-  return http.delete(postUrl(postId));
+export async function deletePost(postId) {
+  return await http.delete('/blog/v1/' + postId);
 }
