@@ -38,7 +38,7 @@ async function getById(id, user) {
 }
 
 async function getByUser(user) {
-  console.log("insie user", user._id);
+  //console.log("insie user", user._id);
   var query = `select
       blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private,
       tbl_users_Data.name as Author
@@ -100,29 +100,33 @@ async function getAll(user) {
 
 async function search(searchText, user) {
   //console.log("user get all", user);
-  var query = `select 
-      blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private,
-      tbl_users_Data.name as Author
-      from "DSS".tbl_blog_Data 
-      inner join "DSS".tbl_users_Data on tbl_blog_Data.posted_by = tbl_users_Data.user_id
-      where is_private = false and (title = $1 or body = $1)`;
+  let query = `
+  SELECT
+    blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private,
+    tbl_users_Data.name AS author
+  FROM "DSS".tbl_blog_Data
+  INNER JOIN "DSS".tbl_users_Data ON tbl_blog_Data.posted_by = tbl_users_Data.user_id
+  WHERE is_private = false AND (title ILIKE '%$1:value%' OR body ILIKE '%$1:value%')`;
+
   if (user != null) {
-    query =
-      query +
-      ` union select
+    query += `
+    UNION
+    SELECT
       blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private,
-      tbl_users_Data.name as Author
-      from "DSS".tbl_blog_Data 
-      inner join "DSS".tbl_users_Data on tbl_blog_Data.posted_by = tbl_users_Data.user_id
-      where is_private = true and (title = $1 or body = $1) and posted_by = $2`;
+      tbl_users_Data.name AS author
+    FROM "DSS".tbl_blog_Data
+    INNER JOIN "DSS".tbl_users_Data ON tbl_blog_Data.posted_by = tbl_users_Data.user_id
+    WHERE is_private = true AND (title ILIKE '%$1:value%' OR body ILIKE '%$1:value%') AND posted_by = $2`;
   }
 
-  const searchBlog = new PS({
-    name: "search-blog",
-    text: query,
-    values: [searchtext, user != null ? [user._id] : []],
-  });
-  const result = await db.callQuery(searchBlog);
+  const values = user != null ? [searchText, user._id] : [searchText];
+  // const searchBlog = {
+  //   name: "search-blog",
+  //   text: query,
+  //   values: values,
+  // };
+
+  const result = await db.callAny(query, values);
   if (result) {
     if (result.length > 0) {
       for (i = 0; i < result.length; i++) {
@@ -193,16 +197,16 @@ async function update(id, blog) {
   }
 }
 
-async function remove(id) {
+async function remove(id, user) {
   const findBlog = new PS({
     name: "find-blog",
     text: 'select blog_id, posted_by, is_private from "DSS".tbl_blog_data where blog_id = $1',
     values: [id],
   });
-  const blogResult = await db.callQuery(findBlog);
-  //console.log(blogResult);
+  //const blogResult = await db.callQuery(findBlog);
+  //console.log("blogresult", blogResult);
   if (blogResult != null && blogResult.length > 0) {
-    if (blogResult[0].posted_by != blog.posted_by) {
+    if (blogResult[0].posted_by != user._id) {
       return { status: "unauthorized", message: "Access denied" };
     }
     const deleteBlog = new PS({
@@ -229,4 +233,5 @@ module.exports = {
   remove,
   getById,
   getByUser,
+  search,
 };
