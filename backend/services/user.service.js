@@ -150,6 +150,17 @@ async function generateOTP(user) {
   }
 }
 
+async function verifyRegistrationToken(user, code) {
+  await redisClient.connect();
+  const otp = JSON.parse(await redisClient.get(user.email));
+  await redisClient.disconnect();
+  if (otp) {
+    if (otp.value == code) {
+      console.log("valid otp");
+    }
+  }
+}
+
 async function verify(token, code) {
   await redisClient.connect();
   const otp = JSON.parse(await redisClient.get(token));
@@ -212,6 +223,7 @@ async function create(user) {
   if (result["usp_users_insert"] == "-1") {
     return { status: "fail", message: "Email already exists" };
   } else {
+    const otp = generateOTP(user);
     return { status: "pass", message: "User created succesfully" };
   }
 }
