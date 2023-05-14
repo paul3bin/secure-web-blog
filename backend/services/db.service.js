@@ -4,8 +4,12 @@ const pgp = require("pg-promise")();
 const db = pgp(
   "postgres://wwtvmpnp:YXOEKMod5J7J0TvV1oqn9Fowho20rZXh@mahmud.db.elephantsql.com/wwtvmpnp"
 );
+//const db = pgp(
+//  `postgres://${process.env.DSS_DB_USER}:${process.env.DSS_DB_PASSWORD}@${process.env.DSS_DB_HOST}/${process.env.DSS_DB_USER}`
+// );
 
 async function callFunction(sql, params) {
+  //console.log(db);
   const result = await db.query(
     'select * from "DSS"."usp_users_insert"($1, $2, $3, $4)',
     params
@@ -18,6 +22,7 @@ async function callFunction(sql, params) {
 }
 
 async function callQuery(sql) {
+  //console.log(db);
   // const db = pgp(
   //   "postgres://wwtvmpnp:YXOEKMod5J7J0TvV1oqn9Fowho20rZXh@mahmud.db.elephantsql.com/wwtvmpnp"
   // );
@@ -28,6 +33,7 @@ async function callQuery(sql) {
 }
 
 async function callOneorNone(sql) {
+  //console.log(db);
   // const db = pgp(
   //   "postgres://wwtvmpnp:YXOEKMod5J7J0TvV1oqn9Fowho20rZXh@mahmud.db.elephantsql.com/wwtvmpnp"
   // );
