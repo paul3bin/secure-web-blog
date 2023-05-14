@@ -44,26 +44,32 @@ class Posts extends Component {
   }
 
   handleDelete = async post => {
-    const originalPosts = this.state.posts;
-    const posts = originalPosts.filter(m => m._id !== post._id);
-    this.setState({ posts });
-
-    try {
-      await deletePost(post._id);
-    } catch (ex) {
-      if (ex.response && ex.response.status === 404)
-        toast.error("This post has already been deleted.");
-
-      this.setState({ posts: originalPosts });
+    if(window.confirm('Do you want to delete the post with title ?')){
+      const originalPosts = this.state.posts;
+      const posts = originalPosts.filter(m => m.id !== post.blog_id);
+      this.setState({ posts: posts });
+  
+      try {
+        const response = await deletePost(post.blog_id);
+        toast.success("Post deleted!!");
+      } catch (ex) {
+        if (ex.response && ex.response.status === 404)
+          toast.error("This post has already been deleted.");
+  
+        this.setState({ posts: originalPosts });
+      }
     }
   };
 
+  handleSearch = async () =>{
+
+  }
 
   render() {
     const { length: count } = this.state.posts;    
     const { user } = this.props;
 
-    if (count === 0) return <p>There are no posts in the database.</p>;    
+    // if (count === 0) return <p>There are no posts in the database.</p>;    
 
     return (
       <div className="row"> 
@@ -75,23 +81,25 @@ class Posts extends Component {
           )}
 
           <div className="row" style={{marginTop: "20px"}}>
-            <div className="col-7">
+            <div className={user ? "col-7" : "col-10"}>
               <div className="form-group">              
                 <input id="search" className="form-control" />
               </div>
             </div>
-            <div className="col-3">
-              <div className="form-check form-check-inline">
-                  <input className="form-check-input" type="checkbox" name="myPosts" id="myPosts" style={{height: "17px", width:"17px"}}/>
-                  <label className="form-check-label" htmlFor="myPosts"> My Posts</label>                  
+            {user &&
+              <div className="col-3">
+                <div className="form-check form-check-inline">
+                    <input className="form-check-input" type="checkbox" name="myPosts" id="myPosts" style={{height: "17px", width:"17px"}}/>
+                    <label className="form-check-label" htmlFor="myPosts"> My Posts</label>                  
+                </div>
+                <div className="form-check form-check-inline">
+                    <input className="form-check-input" type="checkbox" name="private" id="private" style={{height: "17px", width:"17px"}}/>
+                    <label className="form-check-label" htmlFor="private"> Private</label>                  
+                </div>
               </div>
-              <div className="form-check form-check-inline">
-                  <input className="form-check-input" type="checkbox" name="private" id="private" style={{height: "17px", width:"17px"}}/>
-                  <label className="form-check-label" htmlFor="private"> Private</label>                  
-              </div>
-            </div>
+            }
             <div className="col-1">
-              <button type="button" className="btn btn-primary" onClick={()=>{this.props.history.push("/posts/new");}}>Search</button>
+              <button type="button" className="btn btn-primary" onClick={()=>{this.handleSearch()}}>Search</button>
             </div>
           </div>
           
@@ -104,9 +112,10 @@ class Posts extends Component {
                     {(post.posted_by === this.state.userId) && (
                       <React.Fragment>
                         <Link to={`/posts/${post.blog_id}`} style={{marginRight: "15px", textDecoration: "underline" }}>Edit</Link>
-                        <a href="#" className="card-link" style={{color: "red", textDecoration: "underline"}}>Delete</a>
+                        <a href="#" className="card-link" style={{color: "red", textDecoration: "underline"}} onClick={()=>this.handleDelete(post)}>Delete</a>
                       </React.Fragment>
                     )}
+                    <p className="card-text" style={{fontStyle: "italic", marginTop: "5px"}}>Posted by {post.author} on {post.posted_timestamp}</p>  
                 </div>
             </div>
           ))}           

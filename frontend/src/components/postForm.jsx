@@ -2,6 +2,7 @@ import React from "react";
 import Joi from "joi-browser";
 import Form from "./common/form";
 import { getPost, savePost } from "../services/postService";
+import { getCSRF } from "../services/authService";
 
 class PostForm extends Form {
   state = {
@@ -33,7 +34,7 @@ class PostForm extends Form {
       if (postId === "new") return;
 
       const response = await getPost(postId);
-      if(response.status == 200 && response.data.status == 'pass'){
+      if(response.status === 200 && response.data.status === 'pass'){
         const post = response.data.data;
         this.setState({ data: this.mapToViewModel(post) });
       }
@@ -71,7 +72,7 @@ class PostForm extends Form {
           {this.renderInput("title", "Title", "text", "required" )}
           {/* {this.renderInput("body", "Body", "text", "required")} */}
           {this.renderTextArea("body", "Body", "required")} 
-          {this.renderCheckbox("isPrivate", "Is Private Blog?")}          
+          {this.renderCheckbox("isPrivate", "Is Private Blog?")}    
           {this.renderButton("Save")} 
           <button style={{marginLeft: "15px"}} onClick={()=>{this.props.history.push("/posts");}} className="btn btn-secondary">
             Cancel

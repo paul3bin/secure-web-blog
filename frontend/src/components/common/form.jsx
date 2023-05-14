@@ -46,7 +46,7 @@ class Form extends Component {
     const previousState = {...this.state.data};
     const data = { ...this.state.data };
     //data[input.name] = input.value;
-    if(input.type.toLowerCase() == 'checkbox'){
+    if(input.type.toLowerCase() === 'checkbox'){
       data[input.name] = input.checked;
     }
     else

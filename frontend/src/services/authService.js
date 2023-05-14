@@ -3,12 +3,12 @@ import http from "./httpService";
 import { apiUrl } from "../config.json";
 import cookies from "./cookiesService";
 
-const apiEndpoint = apiUrl + "/auth";
+//const apiEndpoint = apiUrl + "/auth";
 const tokenKey = "token";
 //const cookies = new Cookies();
 export async function login(email, password) {
   const response = await http.post("/user/v1/signIn", { email, password });
-  if (response && response.data && response.data.status == "pass") {
+  if (response && response.data && response.data.status === "pass") {
     cookies.set("token", response.data.token, { path: "/" });
     cookies.set("otp", response.data.otp, { path: "/" });
     cookies.set("csrf", response.headers["x-csrf-token"], { path: "/" });
@@ -19,6 +19,11 @@ export async function login(email, password) {
     //   httpOnly: true });
     http.setJwt(getJwt());
   }
+  return response;
+}
+
+export async function register(data) {
+  const response = await http.post("/user/v1/signup", data);
   return response;
 }
 
@@ -45,6 +50,11 @@ export function getJwt() {
   return jwt;
 }
 
+export function getCSRF() {
+  const csrf = cookies.get("csrf");
+  return csrf;
+}
+
 export async function verifyLoginOtp(otp) {
   const response = await http.post("/user/v1/verify", { otp: otp });
   return response;
@@ -57,4 +67,6 @@ export default {
   getCurrentUser,
   getJwt,
   verifyLoginOtp,
+  register,
+  getCSRF
 };
