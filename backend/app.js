@@ -48,3 +48,5 @@ app.use((req, res, next) => {
 });
 
 app.listen(8085, () => console.log("Server running  on port ", PORT));
+
+module.exports = app;
