@@ -2,8 +2,6 @@ const db = require("./db.service");
 const auth = require("../utils/auth");
 const { PreparedStatement: PS } = require("pg-promise");
 const jwt = require("jsonwebtoken");
-const redis = require("redis");
-const redisClient = redis.createClient();
 
 async function getById(id, user) {
   const getBlogById = new PS({
@@ -85,7 +83,7 @@ async function getAll(user) {
       where is_private = true and posted_by = $1`;
   }
   const getBlog = new PS({
-    name: "get-blog",
+    name: "get-blog" + Date.now(),
     text: query,
     values: user != null ? [user._id] : [],
   });

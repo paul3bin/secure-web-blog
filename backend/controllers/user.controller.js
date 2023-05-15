@@ -195,7 +195,7 @@ async function signOut(req, res, next) {
     if (token) {
       const result = await userService.signOut(token);
       if (result.status == "pass") res.status(200).send(result);
-      else res.status(400).send(result);
+      else res.status(200).send(result);
     } else {
       res.status(400).send("Bad request");
     }

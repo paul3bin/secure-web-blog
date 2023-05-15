@@ -75,7 +75,7 @@ async function validatePassword(user, userParams) {
       user.password_hash
     );
     if (validPassword) {
-      console.log(user.user_id.toString());
+      //console.log(user.user_id.toString());
       const token = jwt.sign(
         {
           _id: user.user_id,
@@ -105,10 +105,11 @@ async function validatePassword(user, userParams) {
           csrfToken: csrf_token, // adding csrf token to redis
         }),
         {
-          EX: 720,
+          EX: 60,
+          // EX: 720,
         }
       );
-      await redisClient.disconnect();
+      await redisClient.quit();
       return { body: { status: "pass", token: token }, csrf_token: csrf_token };
     }
     //PASSWORD IS NOT VALID
@@ -149,7 +150,8 @@ async function generateOTP(user) {
 async function verifyRegistration(token, code) {
   await redisClient.connect();
   const userToken = JSON.parse(await redisClient.get(token));
-  await redisClient.disconnect();
+  await redisClient.quit();
+
   if (userToken) {
     if (userToken == code) {
       const updateUser = new PS({
@@ -160,7 +162,7 @@ async function verifyRegistration(token, code) {
       await db.callOneorNone(updateUser);
       await redisClient.connect();
       await redisClient.del(token);
-      await redisClient.disconnect();
+      await redisClient.quit();
       return { status: "pass", message: "User verified" };
     } else {
       return { status: "fail", message: "invalid code" };
@@ -171,7 +173,7 @@ async function verifyRegistration(token, code) {
 async function verify(token, code) {
   await redisClient.connect();
   const otp = JSON.parse(await redisClient.get(token));
-  await redisClient.disconnect();
+  await redisClient.quit();
   if (otp) {
     console.log(otp);
     if (otp.value == code) {
@@ -198,11 +200,12 @@ async function verify(token, code) {
           active: true,
         }),
         {
-          EX: 720,
+          EX: 60,
+          //EX: 720,
         }
       );
-      await redisClient.disconnect();
-      console.log(token);
+      await redisClient.quit();
+      //console.log(token);
       return { status: "pass", message: "User activated", token: token };
     } else {
       //increment 2fa attempt count
@@ -241,9 +244,10 @@ async function create(user) {
     console.log("otp", otp);
     await redisClient.connect();
     await redisClient.set(user.email, otp, {
-      EX: 720,
+      EX: 60,
+      //EX: 720,
     });
-    await redisClient.disconnect();
+    await redisClient.quit();
     return {
       status: "pass",
       message: "User created succesfully",
@@ -281,14 +285,14 @@ async function signOut(token) {
   console.log("logging out");
   await redisClient.connect();
   const found = JSON.parse(await redisClient.get(token));
-  console.log(found);
+  //console.log(found);
   if (found) {
     await redisClient.del(token);
-    await redisClient.disconnect();
+    await redisClient.quit();
     return { status: "pass", message: "You have been Logged Out" };
   } else {
-    await redisClient.disconnect();
-    return { status: "fail", message: "Bad request" };
+    await redisClient.quit();
+    return { status: "fail", message: "Invalid Session" };
   }
 }
 

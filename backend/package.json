@@ -27,7 +27,6 @@
     "nodemon": "^2.0.22",
     "pg-promise": "^11.4.3",
     "redis": "^4.6.5",
-    "request": "^2.88.2",
     "superagent": "^8.0.9",
     "util": "^0.12.5"
   }

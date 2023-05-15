@@ -78,7 +78,8 @@ function allow() {
           }
           await redisClient.connect();
           const data = await redisClient.get(token);
-          await redisClient.disconnect();
+          await redisClient.quit();
+
           if (data == null) {
             //console.log("data", null);
             req.user = null;
@@ -125,7 +126,7 @@ function authorize() {
             await redisClient.connect();
             const data = await redisClient.get(token);
             // console.log(data);
-            await redisClient.disconnect();
+            await redisClient.quit();
             if (data == null) {
               //Token expired or not found
               //console.log("invalid here 2");
@@ -138,11 +139,13 @@ function authorize() {
                 .status(401)
                 .send({ status: "unauthorised", message: "Access Denied" });
             } else {
-              redisClient.connect();
+              await redisClient.connect();
               redisClient.set(token, data, {
-                EX: 720,
+                EX: 60,
+                // EX: 720,
               });
               req.user = decoded;
+              await redisClient.quit();
             }
             next();
           }
@@ -161,7 +164,7 @@ function verifyCSRF() {
     // getting the csrf token and authorisation token from header
     const csrf_token = req.headers["x-csrf-token"];
     const token = req.headers["authorization"];
-    const cookie_csrf = decodeURIComponent(req.cookie("csrf"));
+    //    const cookie_csrf = decodeURIComponent(req.cookies("csrf"));
 
     // checking if token is received
     if (csrf_token) {
@@ -170,14 +173,14 @@ function verifyCSRF() {
         // connecting to redis database and getting the stored data based on user auth token
         redisClient.connect();
         const data = redisClient.get(token);
-
         // checking if data is present or not
         if (data) {
+          redisClient.quit();
           data.then((value) => {
             // comparing the stored and received csrf token
             if (
-              JSON.parse(value).csrfToken == csrf_token &&
-              cookie_csrf == csrf_token
+              JSON.parse(value).csrfToken == csrf_token /*&&
+              cookie_csrf == csrf_token*/
             ) {
               next();
             } else {
@@ -187,6 +190,7 @@ function verifyCSRF() {
             }
           });
         } else {
+          redisClient.quit();
           return res
             .status(401)
             .send({ status: "unauthorised", message: "Access Denied" });
