@@ -45,6 +45,10 @@ class Posts extends Component {
 
   //function to search the posts based on search keyword in title or body 
   handleSearch = async () =>{
+    if(this.state.search.length>150){
+      toast.error('too lengthy characters for search');
+      return;
+    }
     let searchKey = DOMPurify.sanitize(this.state.search);
     if(searchKey!==this.state.search){
       toast.error('Invalid input');
@@ -76,7 +80,8 @@ class Posts extends Component {
           <div className="row" style={{marginTop: "20px"}}>
             <div className={user ? "col-10" : "col-10"}>
               <div className="form-group">              
-                <input id="search" className="form-control" name="search" value={this.state.search} 
+                <input id="search" className="form-control" name="search" value={this.state.search} maxlength="150" 
+                placeholder="Enter text for search"
                   onChange={(e)=>
                   {
                     this.setState({search : e.target.value});
@@ -87,7 +92,8 @@ class Posts extends Component {
                       this.handleSearch();
                     }
                   }} 
-                />                
+                />
+                <p>Maximum allowed characters: 150</p>                
               </div>
             </div>
             <div className="col-1">

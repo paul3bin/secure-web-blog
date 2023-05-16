@@ -36,7 +36,7 @@ class PostForm extends Form {
     try {
       let postId = this.props.match.params.id;
       let id = DOMPurify.sanitize(postId);
-      if(id!=postId){
+      if(id!==postId){
         toast.error('Invalid request');
         return;
       }
