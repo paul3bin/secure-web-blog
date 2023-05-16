@@ -18,9 +18,10 @@ class RegisterVerifyForm extends Form {
   doSubmit = async () => {
     try {
       const { data } = this.state;
-      const response = await auth.verifyRegisterOtp(encodeURIComponent(data.otp));
+      const response = await auth.verifyRegistrationOtp(data.otp);
       if (response && response.data && response.data.status == "pass") {
-        window.location = "/posts";
+        auth.removeCookie('verify-token');
+        window.location = "/login";
       } else {
         toast.error(response.data.message);
       }
