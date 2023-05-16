@@ -24,6 +24,9 @@ export async function login(email, password) {
 
 export async function register(data) {
   const response = await http.post("/user/v1/signup", data);
+  if (response && response.data && response.data.status === "pass") {
+    cookies.set("verify-token", response.data.token, { path: "/" });
+  }
   return response;
 }
 
@@ -32,19 +35,21 @@ export function loginWithJwt(jwt) {
 }
 
 export async function logout() {
-  removeCookies();
   await http.post("/user/v1/signout");
-  cookies.remove("token");
+  removeAllCookies();
 }
 
 export function getCurrentUser() {
   try {
     const jwt = cookies.get("token");
-    let user = jwtDecode(jwt);
-    console.log("user", user);
-    if (user.active) {
-      return user;
-    } else return null;
+    if (jwt) {
+      let user = jwtDecode(jwt);
+      console.log("user", user);
+      if (user.active) {
+        return user;
+      }
+    }
+    return null;
   } catch (ex) {
     return null;
   }
@@ -70,9 +75,19 @@ export async function verifyLoginOtp(otp) {
   return response;
 }
 
-export function removeCookies() {
+export async function verifyRegistrationOtp(otp) {
+  const response = await http.post("/user/v1/verifyRegistration", { otp: otp });
+  return response;
+}
+
+export function removeAllCookies() {
   cookies.remove("csrf");
   cookies.remove("token");
+  cookies.remove("verify-token");
+}
+
+export function removeCookie(name) {
+  cookies.remove(name);
 }
 
 export default {
@@ -84,5 +99,7 @@ export default {
   verifyLoginOtp,
   register,
   getCSRF,
-  removeCookies,
+  removeAllCookies,
+  verifyRegistrationOtp,
+  removeCookie,
 };

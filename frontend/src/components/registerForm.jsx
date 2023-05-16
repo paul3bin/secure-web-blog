@@ -50,7 +50,7 @@ class RegisterForm extends Form {
   };
 
   componentDidMount(){
-    auth.removeCookies();
+    auth.removeAllCookies();
     loadCaptchaEnginge(4,'black','white');
   }
 
@@ -70,7 +70,7 @@ class RegisterForm extends Form {
           console.log(response);
           if (response && response.data && response.data.status.toLowerCase() === "pass") {            
             this.setState({data: {...this.state.data, success: true, message: ""}});
-            //window.location = "/verify";
+            window.location = "/register/verify";
           } 
           else if (response && response.data && response.data.status.toLowerCase() === "fail") {
             loadCaptchaEnginge(4,'black','white');

@@ -27,6 +27,7 @@ export async function savePost(post) {
   if (post.blog_id && post.blog_id!='new') {
     const body = { ...post };
     delete body.blog_id;
+    http.setCSRF();
     return await http.put('/blog/v1/' + post.blog_id, body);
   }
   else{

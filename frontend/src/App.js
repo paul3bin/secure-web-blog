@@ -37,16 +37,16 @@ class App extends Component {
             <Route path="/login" component={LoginForm} />            
             <Route path="/register/verify" component={RegisterVerifyForm} />
             <Route path="/register" component={RegisterForm} />
-            
+            <ProtectedRoute path="/posts/new" component={PostForm} />
             <Route path="/posts/:id" component={PostForm} />
             <Route
               path="/posts"
               render={props => <Posts {...props} user={this.state.user} myPosts={false}/>}
             />  
-            <Route
+            {/* <Route
               path="/my-posts"
               render={props => <Posts {...props} user={this.state.user} myPosts={true} />}
-            /> 
+            />  */}
             <Route path="/not-found" component={PageNotFound} />
             {/* <Route
               path="/"

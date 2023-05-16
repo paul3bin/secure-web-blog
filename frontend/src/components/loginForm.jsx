@@ -20,7 +20,7 @@ class LoginForm extends Form {
   };
 
   componentDidMount = async() =>{
-    auth.removeCookies();
+    auth.removeAllCookies();
   }
 
   doSubmit = async () => {

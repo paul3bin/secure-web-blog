@@ -15,6 +15,8 @@ axios.interceptors.response.use(null, error => {
   }
   else if (error.response.status == 401){
     toast.error("Unauthorized access");    
+    if(!cookies.get('token'))
+      window.location = "/login";
   }
   /*else if (error.response.status == 406){
     toast.error(error.response.message);    
@@ -32,10 +34,11 @@ function setCSRF(){
 }
 // Add a request interceptor
 axios.interceptors.request.use(function (config) {
-  const token = cookies.get('token');
-  if(token)
-    config.headers.Authorization =  token;
-   
+  let token = cookies.get('token');
+  if(!token)
+    token = cookies.get('verify-token');
+
+  config.headers.Authorization =  token;
   return config;
 });
 
