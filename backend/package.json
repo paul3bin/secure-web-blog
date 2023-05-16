@@ -28,6 +28,7 @@
     "nodemon": "^2.0.22",
     "pg-promise": "^11.4.3",
     "redis": "^4.6.5",
+    "sanitize-html": "^2.10.0",
     "superagent": "^8.0.9",
     "util": "^0.12.5"
   }

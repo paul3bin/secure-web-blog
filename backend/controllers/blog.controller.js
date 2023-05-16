@@ -1,12 +1,12 @@
 const blogService = require("../services/blog.service");
-const Joi = require("joi");
+const Joi = require("../utils/customjoi");
 //const auth = require("../utils/auth");
 
 async function getById(req, res, next) {
   try {
     // console.log("request", req.params.id);
     const blogSchema = Joi.object({
-      id: Joi.number().integer().required(),
+      id: Joi.number().integer().required().escapeHTML(),
     });
     if (blogSchema.validate(req.params).error) {
       res.send(blogSchema.validate(req.body).error.message);
@@ -50,10 +50,11 @@ async function get(req, res, next) {
 
 async function create(req, res, next) {
   try {
+    req.body = sanitize.clean(req.body);
     const blogSchema = Joi.object({
-      title: Joi.string().required(),
-      body: Joi.string().required(),
-      isPrivate: Joi.bool(),
+      title: Joi.string().required().escapeHTML(),
+      body: Joi.string().required().escapeHTML(),
+      isPrivate: Joi.bool().escapeHTML(),
     }).options({ abortEarly: false });
 
     if (blogSchema.validate(req.body).error) {
@@ -80,9 +81,9 @@ async function create(req, res, next) {
 async function update(req, res, next) {
   try {
     const blogSchema = Joi.object({
-      title: Joi.string().required(),
-      body: Joi.string().required(),
-      isPrivate: Joi.boolean(),
+      title: Joi.string().required().escapeHTML(),
+      body: Joi.string().required().escapeHTML(),
+      isPrivate: Joi.boolean().escapeHTML(),
     }).options({ abortEarly: false });
 
     if (blogSchema.validate(req.body).error) {
@@ -112,7 +113,13 @@ async function update(req, res, next) {
 
 async function remove(req, res, next) {
   try {
-    if (req.params.id.length > 0) {
+    const blogSchema = Joi.object({
+      id: Joi.integer().required().escapeHTML(),
+    }).options({ abortEarly: false });
+
+    if (blogSchema.validate(req.params).error) {
+      res.status(400).send(blogSchema.validate(req.body).error.message);
+    } else {
       result = await blogService.remove(req.params.id, req.user);
       if (result.status == "pass") {
         return res.status(200).send(result);
@@ -130,13 +137,11 @@ async function remove(req, res, next) {
 async function search(req, res, next) {
   try {
     const blogSchema = Joi.object({
-      search: Joi.string().required(),
+      search: Joi.string().required().escapeHTML(),
     }).options({ abortEarly: false });
 
     if (blogSchema.validate(req.body).error) {
-      res
-        .status(400)
-        .send("Missing fields" + blogSchema.validate(req.body).error.message);
+      res.status(400).send(blogSchema.validate(req.body).error.message);
     } else {
       const result = await blogService.search(req.body.search, req.user);
       res.status(200).send(result);
