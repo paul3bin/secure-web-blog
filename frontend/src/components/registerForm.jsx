@@ -131,11 +131,11 @@ class RegisterForm extends Form {
             <span>
               <button className="btn btn-secondary" style={{marginLeft: "10px"}} onClick={()=>{window.location = "/posts";}}> Cancel </button>
             </span>
-            {this.state.data.success &&
+            {/* {this.state.data.success &&
               <span>
                 <label style={{marginLeft: "10px", color:"green"}}><i class="fa-solid fa-circle-check" style={{marginRight: "5px"}}></i>Registered Successfully!! <a href="/login" className="text-underline">Click here</a> to login</label>              
               </span>
-            }
+            } */}
             {this.state.data.message &&
               <span>
                 <label style={{marginLeft: "10px", color:"red"}}><i class="fa-solid fa-circle-xmark" style={{marginRight: "5px"}}></i>{this.state.data.message}</label>              
