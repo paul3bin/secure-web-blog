@@ -12,7 +12,7 @@ class PostForm extends Form {
       title: "",
       body: "",
       isPrivate: false,
-      newPost: true
+      newPost: false
     },    
     userId: "",
     errors: {}
@@ -35,6 +35,11 @@ class PostForm extends Form {
   async populatePost() {
     try {
       let postId = this.props.match.params.id;
+      let id = DOMPurify.sanitize(postId);
+      if(id!=postId){
+        toast.error('Invalid request');
+        return;
+      }
       //since posts/new is added as a separate route, params.id is returned as undefined.
       //so check the path and update the id
       if(postId === undefined){
