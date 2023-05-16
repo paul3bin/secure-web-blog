@@ -33,9 +33,11 @@ class App extends Component {
         <NavBar user={user} />
         <main className="container">
           <Switch>            
-            <Route path="/login/verify" component={LoginVerifyForm} />
+            <ProtectedRoute path="/login/verify" component={LoginVerifyForm} />
+            {/* <Route path="/login/verify" component={LoginVerifyForm}/> */}
             <Route path="/login" component={LoginForm} />            
-            <Route path="/register/verify" component={RegisterVerifyForm} />
+            <ProtectedRoute path="/register/verify" component={RegisterVerifyForm} />
+            {/* <Route path="/register/verify" component={RegisterVerifyForm} /> */}
             <Route path="/register" component={RegisterForm} />
             <ProtectedRoute path="/posts/new" component={PostForm} />
             <Route path="/posts/:id" component={PostForm} />

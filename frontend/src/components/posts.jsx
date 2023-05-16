@@ -7,7 +7,7 @@ import _ from "lodash";
 import auth from "../services/authService";
 import SearchBox from "./searchBox";
 import Form from "./common/form";
-
+import moment from "moment";
 class Posts extends Component {
   state = {
     posts: [],
@@ -135,7 +135,7 @@ class Posts extends Component {
                         <a href="#" className="card-link" style={{color: "red", textDecoration: "underline"}} onClick={()=>this.handleDelete(post)}>Delete</a>
                       </React.Fragment>
                     )}
-                    <p className="card-text" style={{fontStyle: "italic", marginTop: "5px"}}>Posted by {post.author} on {post.posted_timestamp}</p>  
+                    <p className="card-text" style={{fontStyle: "italic", marginTop: "5px"}}>Posted by {post.author} on {moment(post.posted_timestamp).format('DD MMM YYYY hh:mm A')}</p>  
                 </div>
             </div>
           ))}           

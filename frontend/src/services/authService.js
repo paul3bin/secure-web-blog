@@ -54,6 +54,30 @@ export function getCurrentUser() {
     return null;
   }
 }
+export function getLoggedInUser() {
+  try {
+    const jwt = cookies.get("token");
+    if (jwt) {
+      let user = jwtDecode(jwt);
+      return user;
+    }
+    return null;
+  } catch (ex) {
+    return null;
+  }
+}
+
+export function getRegisteredUser() {
+  try {
+    const token = cookies.get("verify-token");
+    if (token) {
+      return token;
+    }
+    return null;
+  } catch (ex) {
+    return null;
+  }
+}
 
 export function getJwt() {
   const jwt = cookies.get("token");
@@ -102,4 +126,6 @@ export default {
   removeAllCookies,
   verifyRegistrationOtp,
   removeCookie,
+  getLoggedInUser,
+  getRegisteredUser,
 };
