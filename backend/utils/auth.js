@@ -5,6 +5,7 @@ const randomBytes = util.promisify(crypto.randomBytes);
 const env = process.env;
 var jwt = require("jsonwebtoken");
 const redis = require("redis");
+const { parse } = require("path");
 const redisClient = redis.createClient({ url: process.env.REDIS_URL });
 
 async function hashPassword(password) {
@@ -13,6 +14,17 @@ async function hashPassword(password) {
   } catch (e) {
     console.log("Error hashing password with argon2", e);
   }
+}
+
+function parseHeaderCookie(headerCookie) {
+  let cookies = {};
+
+  headerCookie.split(";").forEach((cookie) => {
+    const [key, value] = cookie.trim().split("=");
+    cookies[key] = value;
+  });
+
+  return cookies;
 }
 
 async function comparePassword(password, hashedPassword) {
@@ -79,7 +91,6 @@ function allow() {
           await redisClient.connect();
           const data = await redisClient.get(token);
           await redisClient.quit();
-
           if (data == null) {
             //console.log("data", null);
             req.user = null;
@@ -139,10 +150,9 @@ function authorize() {
                 .status(401)
                 .send({ status: "unauthorised", message: "Access Denied" });
             } else {
-              await redisClient.connect();
+              redisClient.connect();
               redisClient.set(token, data, {
-                EX: 60,
-                // EX: 720,
+                EX: 720,
               });
               req.user = decoded;
               await redisClient.quit();
@@ -164,7 +174,7 @@ function verifyCSRF() {
     // getting the csrf token and authorisation token from header
     const csrf_token = req.headers["x-csrf-token"];
     const token = req.headers["authorization"];
-    //    const cookie_csrf = decodeURIComponent(req.cookies("csrf"));
+    const headerCookie = parseHeaderCookie(req.headers.cookie);
 
     // checking if token is received
     if (csrf_token) {
@@ -173,14 +183,16 @@ function verifyCSRF() {
         // connecting to redis database and getting the stored data based on user auth token
         redisClient.connect();
         const data = redisClient.get(token);
+
         // checking if data is present or not
         if (data) {
           redisClient.quit();
           data.then((value) => {
             // comparing the stored and received csrf token
             if (
-              JSON.parse(value).csrfToken == csrf_token /*&&
-              cookie_csrf == csrf_token*/
+              JSON.parse(value).csrfToken == csrf_token &&
+              JSON.parse(value).csrfToken ==
+                decodeURIComponent(headerCookie.csrf)
             ) {
               next();
             } else {
