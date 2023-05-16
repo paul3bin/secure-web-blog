@@ -37,6 +37,7 @@ export async function savePost(post) {
 }
 
 export async function deletePost(postId) {
+  http.setCSRF();
   return await http.delete('/blog/v1/' + postId);
 }
 
