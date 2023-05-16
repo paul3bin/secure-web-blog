@@ -22,6 +22,7 @@ services:
       - REDIS_URL=redis://dss_redis
       - SENDGRID_API_KEY=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
       - SENDGRID_VERIFIED_SENDER=vqc22kru@uea.ac.uk
+      - DSS_SESSION_TIMEOUT=720
     depends_on:
       - redis
     networks:
