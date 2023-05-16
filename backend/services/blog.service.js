@@ -23,10 +23,13 @@ async function getById(id, user) {
     //console.log(result[0]);
     result[0].author = await auth.decryptData(result[0].author);
     if (result[0].is_private) {
+      //Blog is private
       //console.log("inside private" + result[0], user);
       if (user != null && result[0].posted_by == user._id) {
+        //Blog is private and belongs to the current logged in user.
         return { status: "pass", data: result[0] };
       } else {
+        //Blog is private and doesn't belong to the logged in user.
         return { status: "unauthorized", message: "Access Denied" };
       }
     } else {
@@ -58,9 +61,9 @@ async function getByUser(user) {
         result[i].author = await auth.decryptData(result[i].author);
       }
     }
-    return { status: "pass", result };
+    return { status: "pass", data: result };
   }
-  return { status: "fail", result };
+  return { status: "pass", message: "No blogs found" };
 }
 
 async function getAll(user) {
@@ -82,7 +85,7 @@ async function getAll(user) {
       where is_private = true and posted_by = $1`;
   }
   const getBlog = new PS({
-    name: "get-blog",
+    name: "get-blog" + Date.now(),
     text: query,
     values: user != null ? [user._id] : [],
   });
@@ -135,7 +138,7 @@ async function search(searchText, user) {
     }
     return { status: "pass", result };
   }
-  return { status: "fail", result };
+  return { status: "pass", result };
 }
 
 async function create(blog) {

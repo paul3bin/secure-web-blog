@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 const app = express();
 const userRouter = require("./routes/user.router");
 const blogRouter = require("./routes/blog.router");
-
+const redis = require("redis");
 const PORT = process.env.DSS_PORT || 8085;
 
 app.use(bodyParser.json());
@@ -19,8 +19,23 @@ app.use(
 
 app.use("/user", userRouter);
 app.use("/blog", blogRouter);
-
 app.set("trust proxy", true);
+
+// //Use this to parse cookies.
+// app.use((req, res, next) => {
+//   const cookies = req.headers.cookie;
+//   if (cookies) {
+//     const parsedCookies = {};
+//     cookies.split(";").forEach((cookie) => {
+//       const parts = cookie.split("=");
+//       const key = parts[0].trim();
+//       const value = parts[1].trim();
+//       parsedCookies[key] = value;
+//     });
+//     req.cookies = parsedCookies;
+//   }
+//   next();
+// });
 
 /* Error handler middleware */
 app.use((err, req, res, next) => {

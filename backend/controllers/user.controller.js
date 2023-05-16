@@ -11,16 +11,27 @@ async function get(req, res, next) {
   }*/
 }
 
+//Get the User info by passing the identifier.
 async function getById(req, res, next) {
   try {
     // console.log("request", req.params.id);
     const userSchema = Joi.object({
       id: Joi.string().required(),
-    });
+    }); //Check if id is sent
+
     if (userSchema.validate(req.params).error) {
-      res.send(userSchema.validate(req.body).error.message);
+      //Required data not filled
+      res.status(400).send(userSchema.validate(req.body).error.message); // BAD REQUEST
     } else {
-      res.json(await userService.getById(req.params.id));
+      const result = await userService.getById(req.params.id);
+      if (result) {
+        if (result.status == "fail") {
+          //User Info not found
+          res.status(404).send(result);
+        } else if (result.status == "pass") {
+          res.status(200).send(result); //User Found
+        }
+      }
     }
   } catch (err) {
     console.error(`Error while getting users by id`, err.message);
@@ -51,7 +62,7 @@ async function create(req, res, next) {
     }).options({ abortEarly: false });
 
     if (userSchema.validate(req.body).error) {
-      res.send(userSchema.validate(req.body).error.message);
+      res.status(400).send(userSchema.validate(req.body).error.message);
     } else {
       const hashedPassword = await auth.hashPassword(req.body.password);
       const encryptedName = await auth.encryptData(req.body.name);
@@ -66,7 +77,7 @@ async function create(req, res, next) {
       const result = await userService.create(user);
       if (result != null) {
         if (result.status == "fail") {
-          res.status(406).send(result);
+          res.status(200).send(result);
         } else if (result.status == "pass") {
           res.status(200).send(result);
         }
@@ -122,9 +133,34 @@ async function verify(req, res, next) {
     });
 
     if (userSchema.validate(req.body).error) {
-      return res.status(406).json(userSchema.validate(req.body).error.message);
+      return res.status(400).json(userSchema.validate(req.body).error.message); //BAD REQUEST
     } else {
       const result = await userService.verify(token, req.body.otp);
+      if (result.status == "fail") {
+        return res.status(200).json(result);
+      } else {
+        return res.status(200).json(result);
+      }
+    }
+  } else {
+    return res.status(400).json({ status: "fail", message: "Bad Request" });
+  }
+}
+
+async function verifyRegistration(req, res, next) {
+  const token = req.headers["authorization"];
+  if (token) {
+    const userSchema = Joi.object({
+      otp: Joi.string()
+        .required()
+        .length(6)
+        .regex(/^[0-9]+$/),
+    });
+
+    if (userSchema.validate(req.body).error) {
+      return res.status(400).json(userSchema.validate(req.body).error.message);
+    } else {
+      const result = await userService.verifyRegistration(token, req.body.otp);
       if (result.status == "fail") {
         return res.status(200).json(result);
       } else {
@@ -159,7 +195,7 @@ async function signOut(req, res, next) {
     if (token) {
       const result = await userService.signOut(token);
       if (result.status == "pass") res.status(200).send(result);
-      else res.status(400).send(result);
+      else res.status(200).send(result);
     } else {
       res.status(400).send("Bad request");
     }
@@ -175,4 +211,5 @@ module.exports = {
   signIn,
   verify,
   signOut,
+  verifyRegistration,
 };
