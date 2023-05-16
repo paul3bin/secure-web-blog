@@ -1,6 +1,7 @@
 const userService = require("../services/user.service");
 const Joi = require("../utils/customjoi");
 const auth = require("../utils/auth");
+const auditService = require("../services/audit.service");
 
 async function get(req, res, next) {
   /*  try {
@@ -24,6 +25,14 @@ async function getById(req, res, next) {
       res.status(400).send(userSchema.validate(req.body).error.message); // BAD REQUEST
     } else {
       const result = await userService.getById(req.params.id);
+      auditService.create(
+        req.user ? req.params.id : "",
+        "Get User By Id " + id,
+        req.headers["x-forwarded-for"] || req.ip,
+        req.headers["user-agent"],
+        result.message,
+        result.status
+      );
       if (result) {
         if (result.status == "fail") {
           //User Info not found
@@ -58,7 +67,17 @@ async function create(req, res, next) {
           });
           return errors;
         }),
-      phone_number: Joi.string().escapeHTML().allow(""),
+      phone_number: Joi.string()
+        .allow("")
+        .optional()
+        .regex(/^[0-9]{10,11}$/)
+        .label("phone_number")
+        .error((errors) => {
+          errors.forEach((err) => {
+            err.message = "Phone number must be valid";
+          });
+          return errors;
+        }),
       name: Joi.string().required().escapeHTML(),
     }).options({ abortEarly: false });
 
@@ -76,6 +95,14 @@ async function create(req, res, next) {
         name: encryptedName,
       };
       const result = await userService.create(user);
+      auditService.create(
+        "",
+        "Created User " + encryptedEmail,
+        req.headers["x-forwarded-for"] || req.ip,
+        req.headers["user-agent"],
+        result.message,
+        result.status
+      );
       if (result != null) {
         if (result.status == "fail") {
           res.status(200).send(result);
@@ -113,6 +140,14 @@ async function signIn(req, res, next) {
         req.headers["x-forwarded-for"] || req.ip,
         req.headers["user-agent"]
       );
+      auditService.create(
+        "",
+        "Sign In " + req.body.email,
+        req.headers["x-forwarded-for"] || req.ip,
+        req.headers["user-agent"],
+        result.message,
+        result.status
+      );
       //if (result.status == "fail") {
       //   return res.status(401).json(result);
       // } else {
@@ -148,6 +183,14 @@ async function verify(req, res, next) {
       return res.status(400).json(userSchema.validate(req.body).error.message); //BAD REQUEST
     } else {
       const result = await userService.verify(token, req.body.otp);
+      auditService.create(
+        "",
+        "Verify otp for user ",
+        req.headers["x-forwarded-for"] || req.ip,
+        req.headers["user-agent"],
+        result.message,
+        result.status
+      );
       if (result.status == "fail") {
         return res.status(200).json(result);
       } else {
@@ -161,7 +204,6 @@ async function verify(req, res, next) {
 
 async function verifyRegistration(req, res, next) {
   const token = req.headers["authorization"];
-  token = await sanitize.clean(token);
   if (token) {
     const userSchema = Joi.object({
       otp: Joi.string()
@@ -174,6 +216,14 @@ async function verifyRegistration(req, res, next) {
       return res.status(400).json(userSchema.validate(req.body).error.message);
     } else {
       const result = await userService.verifyRegistration(token, req.body.otp);
+      auditService.create(
+        "",
+        "Verify registration ",
+        req.headers["x-forwarded-for"] || req.ip,
+        req.headers["user-agent"],
+        result.message,
+        result.status
+      );
       if (result.status == "fail") {
         return res.status(200).json(result);
       } else {
@@ -205,9 +255,17 @@ async function remove(req, res, next) {
 async function signOut(req, res, next) {
   try {
     const token = req.headers["authorization"];
-    token = await sanitize.clean(token);
+
     if (token) {
       const result = await userService.signOut(token);
+      auditService.create(
+        "",
+        "User Signed Out ",
+        req.headers["x-forwarded-for"] || req.ip,
+        req.headers["user-agent"],
+        result.message,
+        result.status
+      );
       if (result.status == "pass") res.status(200).send(result);
       else res.status(200).send(result);
     } else {

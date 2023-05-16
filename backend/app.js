@@ -9,7 +9,6 @@ const blogRouter = require("./routes/blog.router");
 const redis = require("redis");
 const PORT = process.env.DSS_PORT || 8085;
 const moment = require("moment");
-const sanitize = require("sanitize-html");
 app.use(bodyParser.json());
 
 app.use(

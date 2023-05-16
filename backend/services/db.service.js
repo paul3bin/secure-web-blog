@@ -2,11 +2,8 @@ const auth = require("../utils/auth");
 const pgp = require("pg-promise")();
 
 const db = pgp(
-  "postgres://wwtvmpnp:YXOEKMod5J7J0TvV1oqn9Fowho20rZXh@mahmud.db.elephantsql.com/wwtvmpnp"
+  `postgres://${process.env.DSS_DB_USER}:${process.env.DSS_DB_PASSWORD}@${process.env.DSS_DB_HOST}/${process.env.DSS_DB_USER}`
 );
-//const db = pgp(
-//  `postgres://${process.env.DSS_DB_USER}:${process.env.DSS_DB_PASSWORD}@${process.env.DSS_DB_HOST}/${process.env.DSS_DB_USER}`
-// );
 
 async function callFunction(sql, params) {
   //console.log(db);
@@ -22,10 +19,6 @@ async function callFunction(sql, params) {
 }
 
 async function callQuery(sql) {
-  //console.log(db);
-  // const db = pgp(
-  //   "postgres://wwtvmpnp:YXOEKMod5J7J0TvV1oqn9Fowho20rZXh@mahmud.db.elephantsql.com/wwtvmpnp"
-  // );
   //console.log(sql);
   const result = await db.query(sql);
   //console.log(result);
@@ -33,10 +26,6 @@ async function callQuery(sql) {
 }
 
 async function callOneorNone(sql) {
-  //console.log(db);
-  // const db = pgp(
-  //   "postgres://wwtvmpnp:YXOEKMod5J7J0TvV1oqn9Fowho20rZXh@mahmud.db.elephantsql.com/wwtvmpnp"
-  // );
   const result = await db.oneOrNone(sql);
   if (result != null) {
     return result;

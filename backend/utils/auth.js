@@ -97,6 +97,10 @@ function allow() {
           } else if (JSON.parse(data).active == false) {
             req.user = null;
           } else {
+            redisClient.set(token, data, {
+              EX: 60,
+              // EX: 720,
+            });
             req.user = decoded;
             //console.log("user", req.user);
           }
@@ -152,7 +156,8 @@ function authorize() {
             } else {
               redisClient.connect();
               redisClient.set(token, data, {
-                EX: 720,
+                EX: 60,
+                // EX: 720,
               });
               req.user = decoded;
               await redisClient.quit();
