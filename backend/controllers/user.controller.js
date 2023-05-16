@@ -1,5 +1,5 @@
 const userService = require("../services/user.service");
-const Joi = require("joi");
+const Joi = require("../utils/customjoi");
 const auth = require("../utils/auth");
 
 async function get(req, res, next) {
@@ -16,7 +16,7 @@ async function getById(req, res, next) {
   try {
     // console.log("request", req.params.id);
     const userSchema = Joi.object({
-      id: Joi.string().required(),
+      id: Joi.string().required().escapeHTML(),
     }); //Check if id is sent
 
     if (userSchema.validate(req.params).error) {
@@ -42,9 +42,10 @@ async function getById(req, res, next) {
 async function create(req, res, next) {
   try {
     const userSchema = Joi.object({
-      email: Joi.string().email().required(),
+      email: Joi.string().email().required().escapeHTML(),
       password: Joi.string()
         .required()
+        .escapeHTML()
         .min(8)
         .regex(
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*~])[A-Za-z\d!@#$%^&*~]{8,}$/
@@ -57,8 +58,8 @@ async function create(req, res, next) {
           });
           return errors;
         }),
-      phone_number: Joi.string().allow(""),
-      name: Joi.string().required(),
+      phone_number: Joi.string().escapeHTML().allow(""),
+      name: Joi.string().required().escapeHTML(),
     }).options({ abortEarly: false });
 
     if (userSchema.validate(req.body).error) {
@@ -91,28 +92,39 @@ async function create(req, res, next) {
 
 async function signIn(req, res, next) {
   try {
-    // decoding encoded email received from frontend and encrypting it
-    req.body.email = await auth.encryptData(decodeURIComponent(req.body.email));
+    const userSchema = Joi.object({
+      email: Joi.string().required().escapeHTML(),
+      password: Joi.string().required().escapeHTML(),
+    });
 
-    // decoding encoded password received from frontend
-    req.body.password = decodeURIComponent(req.body.password);
+    if (userSchema.validate(req.body).error) {
+      res.status(400).send(userSchema.validate(req.body).error.message);
+    } else {
+      // decoding encoded email received from frontend and encrypting it
+      req.body.email = await auth.encryptData(
+        decodeURIComponent(req.body.email)
+      );
 
-    const result = await userService.authenticate(
-      req.body,
-      req.headers["x-forwarded-for"] || req.ip,
-      req.headers["user-agent"]
-    );
-    //if (result.status == "fail") {
-    //   return res.status(401).json(result);
-    // } else {
-    if (result) {
-      if (result.body && result.body.status == "pass") {
-        //console.log("pass");
-        res.setHeader("X-CSRF-Token", result.csrf_token);
-        return res.status(200).json(result.body);
-      } else {
-        //console.log("inside fail", result);
-        return res.status(200).json(result);
+      // decoding encoded password received from frontend
+      req.body.password = decodeURIComponent(req.body.password);
+
+      const result = await userService.authenticate(
+        req.body,
+        req.headers["x-forwarded-for"] || req.ip,
+        req.headers["user-agent"]
+      );
+      //if (result.status == "fail") {
+      //   return res.status(401).json(result);
+      // } else {
+      if (result) {
+        if (result.body && result.body.status == "pass") {
+          //console.log("pass");
+          res.setHeader("X-CSRF-Token", result.csrf_token);
+          return res.status(200).json(result.body);
+        } else {
+          //console.log("inside fail", result);
+          return res.status(200).json(result);
+        }
       }
     }
     //}
@@ -132,7 +144,7 @@ async function verify(req, res, next) {
         .regex(/^[0-9]+$/),
     });
 
-    if (userSchema.validate(req.body).error) {
+    if (userSchema.validate(req.body, { escapeHtml: true }).error) {
       return res.status(400).json(userSchema.validate(req.body).error.message); //BAD REQUEST
     } else {
       const result = await userService.verify(token, req.body.otp);
@@ -149,6 +161,7 @@ async function verify(req, res, next) {
 
 async function verifyRegistration(req, res, next) {
   const token = req.headers["authorization"];
+  token = await sanitize.clean(token);
   if (token) {
     const userSchema = Joi.object({
       otp: Joi.string()
@@ -192,6 +205,7 @@ async function remove(req, res, next) {
 async function signOut(req, res, next) {
   try {
     const token = req.headers["authorization"];
+    token = await sanitize.clean(token);
     if (token) {
       const result = await userService.signOut(token);
       if (result.status == "pass") res.status(200).send(result);

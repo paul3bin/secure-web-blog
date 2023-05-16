@@ -105,8 +105,8 @@ async function validatePassword(user, userParams) {
           csrfToken: csrf_token, // adding csrf token to redis
         }),
         {
-          EX: 60,
-          // EX: 720,
+          //EX: 60,
+          EX: 720,
         }
       );
       await redisClient.quit();
@@ -200,8 +200,8 @@ async function verify(token, code) {
           active: true,
         }),
         {
-          EX: 60,
-          //EX: 720,
+          // EX: 60,
+          EX: 720,
         }
       );
       await redisClient.quit();
@@ -244,8 +244,8 @@ async function create(user) {
     console.log("otp", otp);
     await redisClient.connect();
     await redisClient.set(user.email, otp, {
-      EX: 60,
-      //EX: 720,
+      //EX: 60,
+      EX: 720,
     });
     await redisClient.quit();
     return {
