@@ -10,17 +10,6 @@ const redis = require("redis");
 const PORT = process.env.DSS_PORT || 8085;
 const moment = require("moment");
 
-function getFutureTime() {
-  const currentDateTime = moment().utc();
-  const futureDateTime = currentDateTime.add(10, "minutes");
-
-  const isoFormattedFutureDateTime = futureDateTime.toISOString();
-
-  console.log(isoFormattedFutureDateTime);
-
-  return isoFormattedFutureDateTime;
-}
-
 app.use(bodyParser.json());
 
 app.use(
@@ -71,7 +60,6 @@ app.use((req, res, next) => {
     "Content-Security-Policy",
     "default-src 'none'; font-src 'self'; img-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'self';  style-src 'self'; frame-src 'self';"
   );
-  res.setHeader("Set-Cookie", [`Expires = ${getFutureTime()}`]);
   next();
 });
 
