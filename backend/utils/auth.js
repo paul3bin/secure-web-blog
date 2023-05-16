@@ -97,10 +97,12 @@ function allow() {
           } else if (JSON.parse(data).active == false) {
             req.user = null;
           } else {
-            redisClient.set(token, data, {
-              EX: 60,
+            await redisClient.connect();
+            await redisClient.set(token, data, {
+              EX: process.env.DSS_SESSION_TIMEOUT,
               // EX: 720,
             });
+            await redisClient.quit();
             req.user = decoded;
             //console.log("user", req.user);
           }
@@ -156,7 +158,7 @@ function authorize() {
             } else {
               redisClient.connect();
               redisClient.set(token, data, {
-                EX: 60,
+                EX: process.env.DSS_SESSION_TIMEOUT,
                 // EX: 720,
               });
               req.user = decoded;

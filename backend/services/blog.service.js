@@ -66,21 +66,21 @@ async function getByUser(user) {
 
 async function getAll(user) {
   //console.log("user get all", user);
-  var query = `select 
+  var query = `(select 
       blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private,
       tbl_users_Data.name as Author
       from "DSS".tbl_blog_Data 
       inner join "DSS".tbl_users_Data on tbl_blog_Data.posted_by = tbl_users_Data.user_id
-      where is_private = false order by posted_timestamp desc`;
+      where is_private = false) `;
   if (user != null) {
     query =
       query +
-      ` union select
+      ` union (select
       blog_id, title, body, posted_by, posted_timestamp, modified_by, modified_timestamp, is_private,
       tbl_users_Data.name as Author
       from "DSS".tbl_blog_Data 
       inner join "DSS".tbl_users_Data on tbl_blog_Data.posted_by = tbl_users_Data.user_id
-      where is_private = true and posted_by = $1 order by posted_timestamp desc`;
+      where is_private = true and posted_by = $1)`;
   }
   const getBlog = new PS({
     name: "get-blog" + Date.now(),
@@ -107,7 +107,7 @@ async function search(searchText, user) {
     tbl_users_Data.name AS author
   FROM "DSS".tbl_blog_Data
   INNER JOIN "DSS".tbl_users_Data ON tbl_blog_Data.posted_by = tbl_users_Data.user_id
-  WHERE is_private = false AND (title ILIKE '%$1:value%' OR body ILIKE '%$1:value%') order by posted_timestamp desc`;
+  WHERE is_private = false AND (title ILIKE '%$1:value%' OR body ILIKE '%$1:value%') order by posted_timestamp desc `;
 
   if (user != null) {
     query += `

@@ -106,7 +106,7 @@ async function validatePassword(user, userParams) {
           csrfToken: csrf_token, // adding csrf token to redis
         }),
         {
-          EX: 60,
+          EX: process.env.DSS_SESSION_TIMEOUT,
           //EX: 720,
         }
       );
@@ -201,7 +201,7 @@ async function verify(token, code) {
           active: true,
         }),
         {
-          EX: 60,
+          EX: process.env.DSS_SESSION_TIMEOUT,
           //EX: 720,
         }
       );
@@ -246,7 +246,7 @@ async function create(user) {
     console.log("otp", otp);
     await redisClient.connect();
     await redisClient.set(user.email, otp, {
-      EX: 60,
+      EX: process.env.DSS_SESSION_TIMEOUT,
       //EX: 720,
     });
     await redisClient.quit();

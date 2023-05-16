@@ -24,7 +24,7 @@ async function getById(req, res, next) {
       if (result.status == "pass") {
         res.status(200).send(result);
       } else if (result.status == "unauthorized") {
-        res.status(401).send({ status: "fail", message: "Access Denied" });
+        res.status(404).send({ status: "fail", message: "Not Found" });
       } else {
         res.status(404).send(result);
       }
@@ -107,7 +107,7 @@ async function update(req, res, next) {
     const blogSchema = Joi.object({
       title: Joi.string().required().escapeHTML(),
       body: Joi.string().required().escapeHTML(),
-      isPrivate: Joi.boolean().escapeHTML(),
+      isPrivate: Joi.boolean(),
     }).options({ abortEarly: false });
 
     if (blogSchema.validate(req.body).error) {
