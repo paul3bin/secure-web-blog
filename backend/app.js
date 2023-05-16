@@ -22,22 +22,6 @@ app.use("/user", userRouter);
 app.use("/blog", blogRouter);
 app.set("trust proxy", true);
 
-// //Use this to parse cookies.
-// app.use((req, res, next) => {
-//   const cookies = req.headers.cookie;
-//   if (cookies) {
-//     const parsedCookies = {};
-//     cookies.split(";").forEach((cookie) => {
-//       const parts = cookie.split("=");
-//       const key = parts[0].trim();
-//       const value = parts[1].trim();
-//       parsedCookies[key] = value;
-//     });
-//     req.cookies = parsedCookies;
-//   }
-//   next();
-// });
-
 /* Error handler middleware */
 app.use((err, req, res, next) => {
   //console.log("Internal server error");
@@ -56,6 +40,7 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Methods",
     "GET, POST, PATCH, PUT, DELETE, OPTIONS"
   );
+  // Setting header to set content security policy to self in the response header
   res.setHeader(
     "Content-Security-Policy",
     "default-src 'none'; font-src 'self'; img-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'self';  style-src 'self'; frame-src 'self';"
