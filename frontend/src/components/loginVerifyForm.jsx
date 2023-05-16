@@ -1,5 +1,4 @@
 import React from "react";
-import { Redirect } from "react-router-dom";
 import Joi from "joi-browser";
 import Form from "./common/form";
 import auth from "../services/authService";
@@ -11,24 +10,22 @@ class LoginVerifyForm extends Form {
     errors: {},
   };
 
+  //otp is the only required field on this form
   schema = {
     otp: Joi.string().required().label("Otp"),
   };
 
-  componentDidMount = async () =>{
-
-  }
   doSubmit = async () => {
     try {
       const { data } = this.state;
+      //encode otp
       const response = await auth.verifyLoginOtp(encodeURIComponent(data.otp));
-      if (response && response.data && response.data.status == "pass") {
+      if (response && response.data && response.data.status === "pass") {
         window.location = "/posts";
       } else {
         toast.error(response.data.message);
       }
     } catch (ex) {
-      console.log("ex", ex.response.data);
       if (ex.response && ex.response.status === 400) {
         const errors = { ...this.state.errors };
         errors.email = ex.response.data;
@@ -38,8 +35,6 @@ class LoginVerifyForm extends Form {
   };
 
   render() {
-    //if (auth.getCurrentUser()) return <Redirect to="/" />;
-
     return (
       <div className="row justify-content-center">
         <div className="col-8">

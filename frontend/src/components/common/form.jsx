@@ -3,8 +3,8 @@ import Joi from "joi-browser";
 import Input from "./input";
 import TextArea from "./textArea";
 import Checkbox from "./checkbox";
-//import Select from "./select";
 
+//custom form with customizable input controls
 class Form extends Component {
   state = {
     data: {},
@@ -24,12 +24,12 @@ class Form extends Component {
   validateProperty = ({ name, value }, data) => {    
     if (name === "confirmPassword" && data.password === data.confirmPassword) {
       return null;
-    } else {
+    } else {      
       const obj = { [name]: value };
       const schema = { [name]: this.schema[name] };
       const { error } = Joi.validate(obj, schema);
-      return error ? error.details[0].message : null;
-    }
+        return error ? error.details[0].message : null;
+      }
   };
 
   handleSubmit = e => {
@@ -63,15 +63,15 @@ class Form extends Component {
     else delete errors[input.name];    
   };
 
-  renderButton(label) {
+  renderButton(label, id="") {
     return (
-      <button disabled={this.validate()} className="btn btn-primary">
+      <button disabled={this.validate()} className="btn btn-primary" id={id}>
         {label}
       </button>
     );
   }
 
-  renderInput(name, label, type = "text", required) {
+  renderInput(name, label, type = "text", required, placeholder="") {
     const { data, errors } = this.state;
 
     return (
@@ -83,6 +83,7 @@ class Form extends Component {
         onChange={this.handleChange}
         error={errors[name]}
         required={required}
+        placeholder={placeholder}
       />
     );
   }

@@ -1,5 +1,5 @@
 import React from "react";
-
+//custom input control
 const Input = ({ name, label, error, required, ...rest }) => {
   return (
     <div className="form-group">

@@ -2,33 +2,42 @@
 // 1. encodeURIComponent - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
 
 import React from "react";
-import { Redirect } from "react-router-dom";
 import Joi from "joi-browser";
 import Form from "./common/form";
 import auth from "../services/authService";
 import { toast } from "react-toastify";
+import DOMPurify from 'isomorphic-dompurify';
 
 class LoginForm extends Form {
   state = {
-    data: { email: "email2kiranmayee@gmail.com", password: "Hello123@" },
+    data: { email: "", password: "" },
     errors: {},
   };
 
+  // validate the inputs using Joi
   schema = {
     email: Joi.string().required().label("Email"),
     password: Joi.string().required().label("Password"),
   };
 
   componentDidMount = async() =>{
-    auth.removeAllCookies();
+    auth.removeAllCookies(); //remove any cookies in the browser to ensure a new session
   }
 
   doSubmit = async () => {
     try {
-      const { data } = this.state;
+      const { data } = this.state;  
+      //sanitize the inputs  
+      let email = DOMPurify.sanitize(data.email,{ALLOWED_TAGS: []});
+      let password = DOMPurify.sanitize(data.password,{ALLOWED_TAGS: []});
+      if(email !== data.email || password!== data.password){
+        toast.error('Invalid input');
+        return;
+      }
+      //encode the input 
       const response = await auth.login(
-        encodeURIComponent(data.email),
-        encodeURIComponent(data.password)
+        encodeURIComponent(email),
+        encodeURIComponent(password)
       );
       if (response && response.data && response.data.status === "pass") {
         window.location = "/login/verify";
@@ -36,7 +45,6 @@ class LoginForm extends Form {
         toast.error(response.data.message);
       }
     } catch (ex) {
-      console.log("ex", ex);
       if (ex.response && ex.response.status === 400) {
         const errors = { ...this.state.errors };
         errors.email = ex.response.data;
@@ -46,8 +54,6 @@ class LoginForm extends Form {
   };
 
   render() {
-    //if (auth.getCurrentUser()) return <Redirect to="/" />;
-
     return (
       <div className="row justify-content-center">
         <div className="col-8">

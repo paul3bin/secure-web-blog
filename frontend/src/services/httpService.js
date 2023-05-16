@@ -1,5 +1,4 @@
 import axios from "axios";
-//import logger from "./logService";
 import { toast } from "react-toastify";
 import cookies from "./cookiesService";
 
@@ -8,20 +7,15 @@ axios.interceptors.response.use(null, error => {
     error.response &&
     error.response.status >= 400 &&
     error.response.status < 500;
-  //console.log(error.response.data);
+  
   if (!expectedError) {
-    //logger.log(error);
     toast.error("An unexpected error occurrred.");
   }
-  else if (error.response.status == 401){
+  else if (error.response.status === 401){
     toast.error("Unauthorized access");    
     if(!cookies.get('token'))
       window.location = "/login";
-  }
-  /*else if (error.response.status == 406){
-    toast.error(error.response.message);    
-  }*/
-  //return error;
+  }  
   return Promise.reject(error);
 });
 
