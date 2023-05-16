@@ -90,7 +90,7 @@ function allow() {
           }
           await redisClient.connect();
           const data = await redisClient.get(token);
-          await redisClient.disconnect();
+          await redisClient.quit();
           if (data == null) {
             //console.log("data", null);
             req.user = null;
@@ -137,7 +137,7 @@ function authorize() {
             await redisClient.connect();
             const data = await redisClient.get(token);
             // console.log(data);
-            await redisClient.disconnect();
+            await redisClient.quit();
             if (data == null) {
               //Token expired or not found
               //console.log("invalid here 2");
@@ -155,6 +155,7 @@ function authorize() {
                 EX: 720,
               });
               req.user = decoded;
+              await redisClient.quit();
             }
             next();
           }
@@ -185,6 +186,7 @@ function verifyCSRF() {
 
         // checking if data is present or not
         if (data) {
+          redisClient.quit();
           data.then((value) => {
             // comparing the stored and received csrf token
             if (
@@ -200,6 +202,7 @@ function verifyCSRF() {
             }
           });
         } else {
+          redisClient.quit();
           return res
             .status(401)
             .send({ status: "unauthorised", message: "Access Denied" });
