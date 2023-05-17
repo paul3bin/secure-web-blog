@@ -36,16 +36,18 @@ class PostForm extends Form {
   async populatePost() {
     try {
       let postId = this.props.match.params.id;
+      //since posts/new is added as a separate route, params.id is returned as undefined.
+      //so check the path and update the id
+      if(postId === undefined){
+        postId = (this.props.match.path === '/posts/new') ? 'new' : '';
+      }
+      
       let id = DOMPurify.sanitize(postId);
       if(id!==postId){
         toast.error('Invalid request');
         return;
       }
-      //since posts/new is added as a separate route, params.id is returned as undefined.
-      //so check the path and update the id
-      if(postId === undefined){
-          postId = this.props.path.endsWith('posts/new') ? 'new' : '';
-      }
+      
       if (postId === "new") {
         this.setState({ data: {...this.state.data, newPost: true}});
         return;
@@ -59,6 +61,7 @@ class PostForm extends Form {
       }
       
     } catch (ex) {
+      console.log(ex);
       if (ex.response && ex.response.status === 404)
         this.props.history.replace("/not-found");
     }
