@@ -86,7 +86,8 @@ async function validatePassword(user, userParams) {
         process.env.DSS_SECRET_KEY,
         { expiresIn: "2d" }
       );
-      const otp = await generateOTP(user);
+      const email_type = "login";
+      const otp = await generateOTP(user, email_type);
       console.log("otp", otp);
       // Calling function to generate csrf token
       const csrf_token = await generateCSRFToken();
@@ -105,8 +106,8 @@ async function validatePassword(user, userParams) {
           csrfToken: csrf_token, // adding csrf token to redis
         }),
         {
-          EX: 60,
-          // EX: 720,
+          EX: process.env.DSS_SESSION_TIMEOUT,
+          //EX: 720,
         }
       );
       await redisClient.quit();
@@ -136,12 +137,12 @@ async function validatePassword(user, userParams) {
 }
 
 //GENERATE AND SEND OTP TO THE USER
-async function generateOTP(user) {
+async function generateOTP(user, email_type) {
   if (user) {
     const otp = Math.floor(Math.random() * 899999 + 100000);
     auth
       .decryptData(user.email)
-      .then((result) => emailService.sendOTP(result, otp));
+      .then((result) => emailService.sendOTP(result, otp, email_type));
 
     return otp;
   }
@@ -200,7 +201,7 @@ async function verify(token, code) {
           active: true,
         }),
         {
-          EX: 60,
+          EX: process.env.DSS_SESSION_TIMEOUT,
           //EX: 720,
         }
       );
@@ -240,11 +241,12 @@ async function create(user) {
   if (result["usp_users_insert"] == "-1") {
     return { status: "fail", message: "Email already exists" };
   } else {
-    const otp = await generateOTP(user);
+    const email_type = "registeration";
+    const otp = await generateOTP(user, email_type);
     console.log("otp", otp);
     await redisClient.connect();
     await redisClient.set(user.email, otp, {
-      EX: 60,
+      EX: process.env.DSS_SESSION_TIMEOUT,
       //EX: 720,
     });
     await redisClient.quit();

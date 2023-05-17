@@ -97,6 +97,12 @@ function allow() {
           } else if (JSON.parse(data).active == false) {
             req.user = null;
           } else {
+            await redisClient.connect();
+            await redisClient.set(token, data, {
+              EX: process.env.DSS_SESSION_TIMEOUT,
+              // EX: 720,
+            });
+            await redisClient.quit();
             req.user = decoded;
             //console.log("user", req.user);
           }
@@ -152,7 +158,8 @@ function authorize() {
             } else {
               redisClient.connect();
               redisClient.set(token, data, {
-                EX: 720,
+                EX: process.env.DSS_SESSION_TIMEOUT,
+                // EX: 720,
               });
               req.user = decoded;
               await redisClient.quit();
@@ -170,7 +177,7 @@ function verifyCSRF() {
   function that will act as a middleware to verify CSRF token before all 
   POST, PUT and DELETE request are carried out
   */
-  return (req, res, next) => {
+  return async (req, res, next) => {
     // getting the csrf token and authorisation token from header
     const csrf_token = req.headers["x-csrf-token"];
     const token = req.headers["authorization"];
@@ -181,12 +188,12 @@ function verifyCSRF() {
       // checking if request method is a POST or, PUT, or DELETE
       if (req.method in ["POST", "PUT", "DELETE"]) {
         // connecting to redis database and getting the stored data based on user auth token
-        redisClient.connect();
-        const data = redisClient.get(token);
+        await redisClient.connect();
+        const data = await redisClient.get(token);
 
         // checking if data is present or not
         if (data) {
-          redisClient.quit();
+          await redisClient.quit();
           data.then((value) => {
             // comparing the stored and received csrf token
             if (
@@ -202,7 +209,7 @@ function verifyCSRF() {
             }
           });
         } else {
-          redisClient.quit();
+          await redisClient.quit();
           return res
             .status(401)
             .send({ status: "unauthorised", message: "Access Denied" });
@@ -218,6 +225,36 @@ function verifyCSRF() {
   };
 }
 
+function RateLimit() {
+  return async (req, res, next) => {
+    await redisClient.connect();
+    const ip = req.ip.replace("::1", "localhost");
+    const data = await redisClient.get(ip);
+    await redisClient.quit();
+    if (data) {
+      //If redis count found and more than 10 api calls were made in the last 1 minute.
+      if (JSON.parse(data) > 10) {
+        return res
+          .status(401)
+          .send({ status: "unauthorised", message: "Access Denied" });
+      } else {
+        await redisClient.connect();
+        redisClient.set(ip, JSON.parse(data) + 1, { EX: 60 });
+        await redisClient.quit();
+        next();
+      }
+    } else {
+      await redisClient.connect();
+      await redisClient.set(ip, 1, {
+        EX: 60,
+        //EX: 720,
+      });
+      await redisClient.quit();
+      next();
+    }
+  };
+}
+
 module.exports = {
   hashPassword,
   comparePassword,
@@ -226,4 +263,5 @@ module.exports = {
   authorize,
   allow,
   verifyCSRF,
+  RateLimit,
 };

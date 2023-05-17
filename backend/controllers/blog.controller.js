@@ -1,5 +1,6 @@
 const blogService = require("../services/blog.service");
-const Joi = require("joi");
+const Joi = require("../utils/customjoi");
+const auditService = require("../services/audit.service");
 //const auth = require("../utils/auth");
 
 async function getById(req, res, next) {
@@ -12,10 +13,18 @@ async function getById(req, res, next) {
       res.send(blogSchema.validate(req.body).error.message);
     } else {
       const result = await blogService.getById(req.params.id, req.user);
+      auditService.create(
+        req.user ? req.user._id : "",
+        "Retrieve Blog By Id " + req.params.id,
+        req.headers["x-forwarded-for"] || req.ip,
+        req.headers["user-agent"],
+        result.message,
+        result.status
+      );
       if (result.status == "pass") {
         res.status(200).send(result);
       } else if (result.status == "unauthorized") {
-        res.status(401).send({ status: "fail", message: "Access Denied" });
+        res.status(404).send({ status: "fail", message: "Not Found" });
       } else {
         res.status(404).send(result);
       }
@@ -29,6 +38,14 @@ async function getById(req, res, next) {
 async function getByUser(req, res, next) {
   try {
     const result = await blogService.getByUser(req.user);
+    auditService.create(
+      req.user ? req.user._id : "",
+      "Get For user " + req.user.id,
+      req.headers["x-forwarded-for"] || req.ip,
+      req.headers["user-agent"],
+      result.message,
+      result.status
+    );
     if (result.status == "pass") {
       res.status(200).send(result);
     }
@@ -51,9 +68,9 @@ async function get(req, res, next) {
 async function create(req, res, next) {
   try {
     const blogSchema = Joi.object({
-      title: Joi.string().required(),
-      body: Joi.string().required(),
-      isPrivate: Joi.bool(),
+      title: Joi.string().required().escapeHTML(),
+      body: Joi.string().required().escapeHTML(),
+      isPrivate: Joi.boolean(),
     }).options({ abortEarly: false });
 
     if (blogSchema.validate(req.body).error) {
@@ -67,6 +84,14 @@ async function create(req, res, next) {
         is_private: req.body.isPrivate,
       };
       const result = await blogService.create(blog);
+      auditService.create(
+        req.user ? req.user._id : "",
+        "Create Blog",
+        req.headers["x-forwarded-for"] || req.ip,
+        req.headers["user-agent"],
+        result.message,
+        result.status
+      );
       // console.log(result);
       if (result.status == "pass") return res.status(200).send(result);
       else if (result.status == "fail") return res.status(200).send(result);
@@ -80,8 +105,8 @@ async function create(req, res, next) {
 async function update(req, res, next) {
   try {
     const blogSchema = Joi.object({
-      title: Joi.string().required(),
-      body: Joi.string().required(),
+      title: Joi.string().required().escapeHTML(),
+      body: Joi.string().required().escapeHTML(),
       isPrivate: Joi.boolean(),
     }).options({ abortEarly: false });
 
@@ -96,6 +121,14 @@ async function update(req, res, next) {
         is_private: req.body.isPrivate,
       };
       const result = await blogService.update(req.params.id, blog);
+      auditService.create(
+        req.user ? req.user._id : "",
+        "Updated " + req.params.id,
+        req.headers["x-forwarded-for"] || req.ip,
+        req.headers["user-agent"],
+        result.message,
+        result.status
+      );
       if (result.status == "unauthorized") {
         res.status(401).send("Access Denied");
       } else if (result.status == "fail") {
@@ -112,8 +145,22 @@ async function update(req, res, next) {
 
 async function remove(req, res, next) {
   try {
-    if (req.params.id.length > 0) {
+    const blogSchema = Joi.object({
+      id: Joi.integer().required().escapeHTML(),
+    }).options({ abortEarly: false });
+
+    if (blogSchema.validate(req.params).error) {
+      res.status(400).send(blogSchema.validate(req.body).error.message);
+    } else {
       result = await blogService.remove(req.params.id, req.user);
+      auditService.create(
+        req.user ? req.user._id : "",
+        "Remove Blog By Id " + req.params.id,
+        req.headers["x-forwarded-for"] || req.ip,
+        req.headers["user-agent"],
+        result.message,
+        result.status
+      );
       if (result.status == "pass") {
         return res.status(200).send(result);
       } else if (result.status == "fail") {
@@ -130,15 +177,21 @@ async function remove(req, res, next) {
 async function search(req, res, next) {
   try {
     const blogSchema = Joi.object({
-      search: Joi.string().required(),
+      search: Joi.string().required().escapeHTML(),
     }).options({ abortEarly: false });
 
     if (blogSchema.validate(req.body).error) {
-      res
-        .status(400)
-        .send("Missing fields" + blogSchema.validate(req.body).error.message);
+      res.status(400).send(blogSchema.validate(req.body).error.message);
     } else {
       const result = await blogService.search(req.body.search, req.user);
+      auditService.create(
+        req.user ? req.user._id : "",
+        "Search Blog By criteria " + req.body.search,
+        req.headers["x-forwarded-for"] || req.ip,
+        req.headers["user-agent"],
+        result.message,
+        result.status
+      );
       res.status(200).send(result);
     }
   } catch (err) {

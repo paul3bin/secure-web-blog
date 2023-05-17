@@ -22,11 +22,11 @@ async function sendEmail(to, subject, text) {
     });
 }
 
-async function sendOTP(to, otp) {
+async function sendOTP(to, otp, email_type) {
   sendEmail(
     to,
     "Login one time passcode",
-    "Your login one time passcode is " + otp + ". It will expire in 5 minutes."
+    `Your ${email_type} one time passcode is  ${otp} . It will expire in 5 minutes.`
   );
 }
 
