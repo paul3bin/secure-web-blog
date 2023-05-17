@@ -80,7 +80,7 @@ class Posts extends Component {
           <div className="row" style={{marginTop: "20px"}}>
             <div className={user ? "col-10" : "col-10"}>
               <div className="form-group">              
-                <input id="search" className="form-control" name="search" value={this.state.search} maxlength="150" 
+                <input id="search" className="form-control" name="search" value={this.state.search} maxLength="150" 
                 placeholder="Enter text for search"
                   onChange={(e)=>
                   {
