@@ -1,10 +1,6 @@
-
 # Secure Web Blog
 
 A security focused web-based blog created using JavaScipt
-
-
-
 
 ## Setting up Environment Variables
 
@@ -42,8 +38,6 @@ For `Linux` use following command for setting up env variable in the process
   env [variable_name]=[variable_value]
 ```
 
-
-
 ## Setting up Redis
 
 - Unzip the `redis-latest.zip` folder
@@ -56,6 +50,7 @@ For `Linux` use following command for setting up env variable in the process
 - Double-click on `redis-server` file
 
 - Else install redis by following [redis installation guide](https://redis.io/docs/getting-started/installation/).
+
 ## Installing dependencies
 
 **Installing backend dependencies and starting backend/server**
@@ -77,8 +72,6 @@ For `Linux` use following command for setting up env variable in the process
 ```bash
   npm start
 ```
-
-
 
 **Installing backend dependencies and starting frontend/website**
 
