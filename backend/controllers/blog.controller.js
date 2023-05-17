@@ -146,7 +146,7 @@ async function update(req, res, next) {
 async function remove(req, res, next) {
   try {
     const blogSchema = Joi.object({
-      id: Joi.integer().required().escapeHTML(),
+      id: Joi.number().integer().required(),
     }).options({ abortEarly: false });
 
     if (blogSchema.validate(req.params).error) {

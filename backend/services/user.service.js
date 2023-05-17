@@ -179,7 +179,7 @@ async function verify(token, code) {
     console.log(otp);
     if (otp.value == code) {
       await redisClient.connect();
-      redisClient.del(token);
+      await redisClient.del(token);
       token = jwt.sign(
         {
           _id: otp._id,
@@ -284,7 +284,6 @@ async function update(id, user) {
 }
 
 async function signOut(token) {
-  console.log("logging out");
   await redisClient.connect();
   const found = JSON.parse(await redisClient.get(token));
   //console.log(found);

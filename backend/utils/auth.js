@@ -156,8 +156,8 @@ function authorize() {
                 .status(401)
                 .send({ status: "unauthorised", message: "Access Denied" });
             } else {
-              redisClient.connect();
-              redisClient.set(token, data, {
+              await redisClient.connect();
+              await redisClient.set(token, data, {
                 EX: process.env.DSS_SESSION_TIMEOUT,
                 // EX: 720,
               });
@@ -230,21 +230,22 @@ function RateLimit() {
     await redisClient.connect();
     const ip = req.ip.replace("::1", "localhost");
     const data = await redisClient.get(ip);
-    await redisClient.quit();
+    //await redisClient.quit();
     if (data) {
       //If redis count found and more than 10 api calls were made in the last 1 minute.
       if (JSON.parse(data) > 10) {
+        await redisClient.quit();
         return res
           .status(401)
           .send({ status: "unauthorised", message: "Access Denied" });
       } else {
-        await redisClient.connect();
-        redisClient.set(ip, JSON.parse(data) + 1, { EX: 60 });
+        // await redisClient.connect();
+        await redisClient.set(ip, JSON.parse(data) + 1, { EX: 60 });
         await redisClient.quit();
         next();
       }
     } else {
-      await redisClient.connect();
+      //await redisClient.connect();
       await redisClient.set(ip, 1, {
         EX: 60,
         //EX: 720,
