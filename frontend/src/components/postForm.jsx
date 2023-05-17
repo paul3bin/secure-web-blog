@@ -21,11 +21,12 @@ class PostForm extends Form {
   schema = {
     blog_id: Joi.number().integer(),
     title: Joi.string()
+      .max(150)
       .required()
       .label("Title"),
     body: Joi.string()
       .required()
-      .max(200)
+      .max(500)
       .label("Body"),
     isPrivate : Joi.boolean(),
     newPost: Joi.boolean(),
