@@ -1,7 +1,7 @@
 import React from "react";
 import { Route, Redirect } from "react-router-dom";
 import auth from "../../services/authService";
-
+//protected routes only for authorized users
 const ProtectedRoute = ({ path, component: Component, render, ...rest }) => {
   return (
     <Route

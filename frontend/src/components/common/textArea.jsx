@@ -1,5 +1,5 @@
 import React from "react";
-
+//custom text area control to use in the form
 const TextArea = ({ name, label, error, required, ...rest }) => {
   return (    
     <div className="form-group">

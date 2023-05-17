@@ -1,5 +1,5 @@
 import React from "react";
-
+//Page Not Found is displayed for unavailable routes. Link is provided to go back to the posts page
 const PageNotFound = () => {
     return (
         <div className="row justify-content-center">

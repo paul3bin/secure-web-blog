@@ -1,14 +1,15 @@
 import React from "react";
 import Joi from "joi-browser";
 import Form from "./common/form";
-//import auth from "../services/authService";
+//library to handle captcha for registration
 import { loadCaptchaEnginge, LoadCanvasTemplate, validateCaptcha } from 'react-simple-captcha';
 import auth from "../services/authService";
 import { toast } from "react-toastify";
+import DOMPurify from 'isomorphic-dompurify';
 
 class RegisterForm extends Form {
   state = {
-    data: { email: "bhaskerr@gmail.com", password: "Hello123@", name: "TEST",  confirmPassword: "Hello123@", phone_number: "1234567890", userCaptcha: "", message: "", success: false},
+    data: { email: "", password: "", name: "",  confirmPassword: "", phone_number: "", userCaptcha: "", message: "", success: false},
     errors: {}
   };
 
@@ -36,13 +37,22 @@ class RegisterForm extends Form {
       .required()
       .valid(Joi.ref('password'))
       .error(errors => {
-        console.log(errors);
         errors.forEach(err => {
           err.message = 'Passwords must match';          
         });
         return errors;
       }),
-    phone_number: Joi.string().allow('').optional(),
+    //phone_number: Joi.string().allow('').optional(),
+    phone_number: Joi.string().allow('')
+      .optional()      
+      .regex(/^[0-9]{10,11}$/)
+      .label("phone_number")
+      .error(errors => {        
+        errors.forEach(err => {
+          err.message = 'Phone number must be valid';          
+        });
+        return errors;
+      }),  
     userCaptcha: Joi.string().required(),
     message: Joi.string().allow('').optional(),
     success: Joi.boolean()
@@ -51,7 +61,7 @@ class RegisterForm extends Form {
 
   componentDidMount(){
     auth.removeAllCookies();
-    loadCaptchaEnginge(4,'black','white');
+    loadCaptchaEnginge(6,'black','white','upper');
   }
 
   doSubmit = async () => {    
@@ -60,43 +70,50 @@ class RegisterForm extends Form {
       if (validateCaptcha(this.state.data.userCaptcha)===true) {          
           
           const { data } = this.state;
+          //sanitize the inputs  
+          let email = DOMPurify.sanitize(data.email,{ALLOWED_TAGS: []});
+          let password = DOMPurify.sanitize(data.password,{ALLOWED_TAGS: []});
+          let phone_number = DOMPurify.sanitize(data.phone_number,{ALLOWED_TAGS: []});
+          let name = DOMPurify.sanitize(data.name,{ALLOWED_TAGS: []});
+          if(email !== data.email || password !== data.password || name !== data.name || phone_number !== data.phone_number){
+            toast.error('Invalid input');
+            return;
+          }
           var registerData = {
-            name: data.name,
-            email: data.email,
-            password: data.password,
-            phone_number: data.phone_number
+            name: DOMPurify.sanitize(data.name,{ALLOWED_TAGS: []}),
+            email: DOMPurify.sanitize(data.email,{ALLOWED_TAGS: []}),
+            password: DOMPurify.sanitize(data.password,{ALLOWED_TAGS: []}),
+            phone_number: DOMPurify.sanitize(data.phone_number,{ALLOWED_TAGS: []})
           }
           const response = await auth.register(registerData);
-          console.log(response);
+          
           if (response && response.data && response.data.status.toLowerCase() === "pass") {            
             this.setState({data: {...this.state.data, success: true, message: ""}});
             window.location = "/register/verify";
           } 
           else if (response && response.data && response.data.status.toLowerCase() === "fail") {
-            loadCaptchaEnginge(4,'black','white');
+            loadCaptchaEnginge(6,'black','white','upper');
             this.setState({data: {...this.state.data, success: false, message: response.data.message}});
           }
           else {
-            loadCaptchaEnginge(4,'black','white');
+            loadCaptchaEnginge(6,'black','white','upper');
             toast.error(response.data.message);
           }        
       }
       else {
-          toast.error('Captcha Does Not Match');
+          loadCaptchaEnginge(6,'black','white','upper');
           this.setState({userCaptcha : ""});
       }
       
     } catch (err) {
-      console.log(err.response.data);
-      loadCaptchaEnginge(4,'black','white');
+      loadCaptchaEnginge(6,'black','white','upper');
       if (err.response && err.response.status === 400) {
         const errors = { ...this.state.errors };
         errors.username = err.response.data;
         this.setState({ errors });
       }
       else {
-        this.setState({data: {...this.state.data, success: false, message: err.response.data.message}});
-        console.log(this.state);
+        this.setState({data: {...this.state.data, success: false, message: err.response.data.message}});        
       }
     }
   };
@@ -108,9 +125,9 @@ class RegisterForm extends Form {
           <h1>Register</h1>
           <form onSubmit={this.handleSubmit}>
             {this.renderInput("name", "Name", "text", "required")}
-            {this.renderInput("phone_number", "Phone Number", "text")}
+            {this.renderInput("phone_number", "Phone Number", "text","", "01234567890")}
             {this.renderInput("email", "Email", "text", "required")}
-            {this.renderInput("password", "Password", "text", "required")}
+            {this.renderInput("password", "Password", "password", "required")}
             <p>Password must contain</p>
             <ul>
               <li>atleast 8 characters</li>
@@ -119,7 +136,7 @@ class RegisterForm extends Form {
               <li>atleast one number/digit</li>
               <li>atleast one special character</li>
             </ul>
-            {this.renderInput("confirmPassword", "Confirm Password", "text", "required")}     
+            {this.renderInput("confirmPassword", "Confirm Password", "password", "required")}     
             <div className="col mt-3">
                 < LoadCanvasTemplate reloadColor="red" />
             </div> 

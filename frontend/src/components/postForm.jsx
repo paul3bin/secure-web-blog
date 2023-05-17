@@ -2,8 +2,9 @@ import React from "react";
 import Joi from "joi-browser";
 import Form from "./common/form";
 import { getPost, savePost } from "../services/postService";
-import { getCSRF } from "../services/authService";
 import auth from "../services/authService";
+import DOMPurify from 'isomorphic-dompurify';
+import { toast } from "react-toastify";
 
 class PostForm extends Form {
   state = {
@@ -11,22 +12,21 @@ class PostForm extends Form {
       title: "",
       body: "",
       isPrivate: false,
-      newPost: true
+      newPost: false
     },    
     userId: "",
     errors: {}
   };
-
+  //validate the inputs using Joi
   schema = {
     blog_id: Joi.number().integer(),
     title: Joi.string()
+      .max(150)
       .required()
       .label("Title"),
-    /*body: Joi.string()
-      .allow('').optional()*/
     body: Joi.string()
       .required()
-      .max(200)
+      .max(500)
       .label("Body"),
     isPrivate : Joi.boolean(),
     newPost: Joi.boolean(),
@@ -36,6 +36,13 @@ class PostForm extends Form {
   async populatePost() {
     try {
       let postId = this.props.match.params.id;
+      let id = DOMPurify.sanitize(postId);
+      if(id!==postId){
+        toast.error('Invalid request');
+        return;
+      }
+      //since posts/new is added as a separate route, params.id is returned as undefined.
+      //so check the path and update the id
       if(postId === undefined){
           postId = this.props.path.endsWith('posts/new') ? 'new' : '';
       }
@@ -43,7 +50,7 @@ class PostForm extends Form {
         this.setState({ data: {...this.state.data, newPost: true}});
         return;
       }
-      
+      //if it is not a new post, get the post from database using id
       this.setState({ data: {...this.state.data, newPost: false}});
       const response = await getPost(postId);
       if(response.status === 200 && response.data.status === 'pass'){
@@ -59,14 +66,14 @@ class PostForm extends Form {
 
   async componentDidMount() {  
     const currentUser = auth.getCurrentUser();
-    const userId = (currentUser) ? currentUser._id : "";   
+    const userId = (currentUser) ? currentUser._id : ""; 
+    //userid is set in the state to display the edit and delete options for the blogs posted by the logged in user  
     if(userId) 
-      this.setState({userId: userId})
-    // else
-    //   this.props.history.push("/login");
+      this.setState({userId: userId}) 
     await this.populatePost();
   }
 
+  //mapping UI model to database schema
   mapToViewModel(post) {
     return {
       blog_id: post.blog_id,
@@ -77,11 +84,18 @@ class PostForm extends Form {
     };
   }
 
-  doSubmit = async () => {
+  doSubmit = async () => {   
+    //sanitize the inputs before submitting to the API 
+    let title = DOMPurify.sanitize(this.state.data.title,{ALLOWED_TAGS: []});
+    let body = DOMPurify.sanitize(this.state.data.body,{ALLOWED_TAGS: []});
+    if(title !== this.state.data.title || body !== this.state.data.body ){
+        toast.error('Invalid input');
+        return;
+    }
     let blog = {
       blog_id: this.state.data.blog_id,
-      title: this.state.data.title,
-      body: this.state.data.body,
+      title: DOMPurify.sanitize(this.state.data.title,{ALLOWED_TAGS: []}),
+      body: DOMPurify.sanitize(this.state.data.body,{ALLOWED_TAGS: []}),
       isPrivate: this.state.data.isPrivate
     }
     await savePost(blog);
@@ -94,10 +108,10 @@ class PostForm extends Form {
       <div>
         <h1>Post</h1>
         <form onSubmit={this.handleSubmit}>
+        {/* display is_private checkbox, save and cancel buttons only for the authorized user access */}
         {(this.state.data.newPost || this.state.data.postedBy === this.state.userId) ?
           <React.Fragment>
               {this.renderInput("title", "Title", "text", "required" )}
-              {/* {this.renderInput("body", "Body", "text", "required")} */}
               {this.renderTextArea("body", "Body", "required")}             
               {this.renderCheckbox("isPrivate", "Is Private Blog?")}    
               {this.renderButton("Save")} 
@@ -105,8 +119,7 @@ class PostForm extends Form {
                 Cancel
               </button>
             </React.Fragment>
-          :
-          
+          :          
             <React.Fragment>
               <h4>Title</h4>
               <p>

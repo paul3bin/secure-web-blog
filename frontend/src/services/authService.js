@@ -1,9 +1,7 @@
 import jwtDecode from "jwt-decode";
 import http from "./httpService";
-import { apiUrl } from "../config.json";
 import cookies from "./cookiesService";
 
-//const apiEndpoint = apiUrl + "/auth";
 const tokenKey = "token";
 //const cookies = new Cookies();
 export async function login(email, password) {
@@ -44,7 +42,7 @@ export function getCurrentUser() {
     const jwt = cookies.get("token");
     if (jwt) {
       let user = jwtDecode(jwt);
-      console.log("user", user);
+      //if user didn't login with otp yet, the session is not active and returns null
       if (user.active) {
         return user;
       }

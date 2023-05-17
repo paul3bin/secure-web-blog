@@ -1,5 +1,5 @@
 import React from "react";
-
+//custom checkbox control with the required customizable props
 const Checkbox = ({ name, label, error, required, ...rest }) => {
   return (    
     <div className="form-check form-group">

@@ -7,6 +7,7 @@
     "axios": "^0.18.0",
     "bootstrap": "^4.1.1",
     "font-awesome": "^4.7.0",
+    "isomorphic-dompurify": "^1.5.0",
     "joi-browser": "^13.4.0",
     "jwt-decode": "^2.2.0",
     "lodash": "^4.17.10",
@@ -18,7 +19,8 @@
     "react-router-dom": "^4.3.1",
     "react-scripts": "1.1.4",
     "react-simple-captcha": "^9.0.2",
-    "react-toastify": "^4.1.0"
+    "react-toastify": "^4.1.0",
+    "sanitize-html": "^2.10.0"
   },
   "scripts": {
     "start": "react-scripts start",
